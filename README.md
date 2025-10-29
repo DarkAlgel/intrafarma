@@ -2,28 +2,27 @@
 
 Este é um sistema de gestão de estoque de medicamentos para controle de entradas, saídas, lotes e validades, construído com Laravel.
 
-Este guia destina-se à configuração e execução do projeto em um ambiente de desenvolvimento local usando XAMPP e uma instalação manual do PostgreSQL.
+Este guia destina-se à configuração e execução do projeto em um ambiente de desenvolvimento local.
 
 ## Stack do Ambiente
 
-* Servidor: Apache (via XAMPP)
-* PHP: (via XAMPP)
-* Banco de Dados: PostgreSQL (instalado manualmente)
-* Backend: Laravel
+* PHP: 8.2+ (incluído no projeto como versão portátil)
+* Banco de Dados: SQLite (arquivo local)
+* Backend: Laravel 11
 * Frontend: Tailwind CSS (compilado com Vite)
-* Gerenciadores de Pacotes: Composer (PHP) e NPM (Node.js)
+* Gerenciadores de Pacotes: Composer (PHP) e NPM/PNPM (Node.js)
 
 ---
 
 ## Pré-requisitos
 
-Antes de começar, garanta que você tenha os seguintes softwares instalados e funcionando em seu sistema:
+Antes de começar, garanta que você tenha os seguintes softwares instalados:
 
-1. XAMPP: (Contém Apache e PHP). Baixe em https://www.apachefriends.org/index.html
-2. PostgreSQL: (O servidor de banco de dados). Baixe em https://www.postgresql.org/download/
-3. Git: Para clonar o repositório.
-4. Composer: O gerenciador de pacotes para PHP. Baixe em https://getcomposer.org/download/
-5. Node.js (com npm): Para o Tailwind/Vite. Baixe a versão LTS em https://nodejs.org/
+1. **Git**: Para clonar o repositório
+2. **Composer**: O gerenciador de pacotes para PHP. Baixe em https://getcomposer.org/download/
+3. **Node.js (com npm/pnpm)**: Para o Tailwind/Vite. Baixe a versão LTS em https://nodejs.org/
+
+**Nota**: O projeto inclui uma versão portátil do PHP 8.2 configurada, então você não precisa instalar PHP separadamente.
 
 ---
 
@@ -33,128 +32,71 @@ Siga estes passos para configurar o ambiente e rodar o projeto.
 
 ### 1. Clonar o Repositório
 
-Primeiro, clone o projeto do GitHub para sua pasta de projetos (ex: C:\Projetos\):
+Clone o projeto para sua pasta de projetos:
 
+```bash
 git clone https://github.com/vaiserk/intrafarma.git
 cd intrafarma
+```
 
 ---
 
-### 2. Configurar o Banco de Dados (PostgreSQL)
+### 2. Instalar Dependências do PHP
 
-Este projeto não usa migrations do Laravel para criar o banco inicial. Ele usa um script SQL pronto.
+O projeto inclui uma versão portátil do PHP 8.2 pré-configurada. Execute:
 
-Abra seu gerenciador de banco de dados (pgAdmin, DBeaver, etc.).
-
-Crie um novo banco de dados. Ex: farmacia_db.
-
-Abra o arquivo database/schema_farmacia.sql que está no projeto.
-
-Execute o conteúdo completo deste arquivo dentro do banco farmacia_db que você acabou de criar.
-
-Isso criará todas as tabelas, views, funções e triggers necessários.
-
----
-
-### 3. Configurar o Apache (XAMPP)
-
-Precisamos configurar o XAMPP para que um domínio (ex: farmacia.localhost) aponte para a pasta public do seu projeto.
-
-#### 3.1. Ativar Virtual Hosts (VHosts)
-
-Abra o painel do XAMPP, clique em "Config" do Apache e abra o arquivo httpd.conf.
-
-Procure (Ctrl+F) pela linha: 
-#Include conf/extra/httpd-vhosts.conf
-
-Apague o # do início para "descomentar" a linha.
-
-Salve o httpd.conf e reinicie o Apache (Stop/Start).
-
-#### 3.2. Adicionar seu Site ao httpd-vhosts.conf
-
-Abra o arquivo: C:\xampp\apache\conf\extra\httpd-vhosts.conf.
-
-Adicione este bloco no final do arquivo (ajuste o caminho DocumentRoot se necessário):
-
-<VirtualHost *:80>
-    ServerName farmacia.localhost
-    DocumentRoot "C:/Projetos/intrafarma/public"
-
-    <Directory "C:/Projetos/intrafarma/public">
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-
-#### 3.3. Editar Arquivo hosts do Windows
-
-Abra o Bloco de Notas como Administrador.
-
-Vá em Arquivo > Abrir....
-
-Navegue até C:\Windows\System32\drivers\etc.
-
-Mude o filtro de "Documentos de Texto (*.txt)" para "Todos os arquivos (*.*)".
-
-Abra o arquivo chamado hosts.
-
-Adicione esta linha no final do arquivo:
-
-127.0.0.1 farmacia.localhost
-
-Salve o arquivo hosts e reinicie o Apache no XAMPP mais uma vez.
-
----
-
-### 4. Configurar o Projeto (Laravel)
-
-#### 4.1. Criar o Arquivo .env
-
-Na raiz do projeto (intrafarma), copie o arquivo de exemplo:
-
-copy .env.example .env
-
-#### 4.2. Editar o .env
-
-Abra o arquivo .env que você acabou de criar e configure-o para se conectar ao seu banco:
-
-APP_URL=http://farmacia.localhost
-
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432            # (ou a porta do seu PostgreSQL, ex: 5433)
-DB_DATABASE=farmacia_db # (O banco que você criou no Passo 2)
-DB_USERNAME=postgres    # (Seu usuário real do PostgreSQL)
-DB_PASSWORD=sua_senha_real_aqui # (Sua senha real do PostgreSQL)
-
-SESSION_DRIVER=file
-
-#### 4.3. Gerar a Chave do App
-
-No terminal, na raiz do projeto, rode:
-
-php artisan key:generate
-
----
-
-### 5. Instalar Dependências
-
-Atenção: Se o composer ou npm falharem por "comando não reconhecido", reinicie seu terminal. Se persistir, instale-os (veja os Pré-requisitos).
-
-#### 5.1. Dependências do PHP (Backend)
-
-Rode o Composer para instalar a pasta vendor/:
-
+```bash
 composer install
+```
 
-Erro Comum: Se o composer install falhar por falta da extensão zip, abra seu C:\xampp\php\php.ini, procure (Ctrl+F) por ;extension=zip e apague o ponto-e-vírgula (;) do início. Salve o arquivo e tente novamente.
+**Nota**: O Composer automaticamente usará o PHP portátil incluído no projeto (`tools/php82/bin/`).
 
-#### 5.2. Dependências do JS/CSS (Frontend)
+---
 
-Rode o NPM para instalar o Tailwind (pasta node_modules/):
+### 3. Configurar o Ambiente
 
+#### 3.1. Criar o Arquivo .env
+
+Copie o arquivo de configuração de exemplo:
+
+```bash
+copy .env.example .env
+```
+
+#### 3.2. Configurar Banco de Dados SQLite
+
+O projeto está configurado para usar SQLite. O arquivo `.env` já está configurado corretamente, mas você pode verificar:
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+```
+
+#### 3.3. Gerar Chave da Aplicação
+
+```bash
+php artisan key:generate
+```
+
+#### 3.4. Executar Migrações
+
+Crie as tabelas do banco de dados:
+
+```bash
+php artisan migrate --force
+```
+
+---
+
+### 4. Instalar Dependências do Frontend
+
+Para o Tailwind CSS e Vite:
+
+```bash
 npm install
+# ou se preferir pnpm:
+pnpm install
+```
 
 ---
 
@@ -162,28 +104,121 @@ npm install
 
 Para rodar a aplicação, você precisa de dois processos rodando ao mesmo tempo:
 
-1. O Servidor Apache (PHP):
+### 1. Servidor PHP (Backend)
 
-No painel do XAMPP, garanta que o módulo Apache esteja rodando (botão "Start" verde).
+Inicie o servidor de desenvolvimento do PHP:
 
-2. O Servidor Vite (Tailwind/CSS):
+```bash
+php -S 127.0.0.1:9100 -t public
+```
 
-Abra um terminal na raiz do projeto (C:\Projetos\intrafarma).
+**Alternativa**: Se preferir usar o Artisan (pode ter problemas de porta):
+```bash
+php artisan serve
+```
 
-*para instalar as dependencias do projeto:
+### 2. Servidor Vite (Frontend - Tailwind/CSS)
 
--pnpm install
+Em outro terminal, inicie o Vite para compilação automática do CSS:
 
-Rode o comando para iniciar o projeto:
--pnpm run dev
+```bash
+npm run dev
+# ou se usar pnpm:
+pnpm run dev
+```
 
-
-Deixe este terminal aberto enquanto você estiver programando. Ele irá recompilar seu CSS automaticamente.
+Deixe este terminal aberto enquanto você estiver desenvolvendo. Ele irá recompilar seu CSS automaticamente.
 
 ---
 
 ## Acesso
 
-Com o Apache e o npm run dev rodando, abra seu navegador e acesse:
+Com ambos os servidores rodando, abra seu navegador e acesse:
 
-http://farmacia.localhost
+**http://127.0.0.1:9100/**
+
+---
+
+## Comandos Úteis
+
+```bash
+# Verificar versão do PHP
+php -v
+
+# Limpar cache de configuração
+php artisan config:clear
+
+# Executar migrações
+php artisan migrate --force
+
+# Gerar nova chave da aplicação
+php artisan key:generate
+
+# Instalar dependências PHP
+composer install
+
+# Instalar dependências Frontend
+npm install
+# ou
+pnpm install
+```
+
+---
+
+## Troubleshooting (Solução de Problemas)
+
+### Problema: "openssl extension is required"
+
+**Solução**: O projeto já inclui um `php.ini` configurado. Se o erro persistir:
+1. Verifique se está usando o PHP correto: `php -v` (deve mostrar 8.2.29)
+2. Verifique se o `php.ini` existe em `tools/php82/bin/php.ini`
+
+### Problema: "could not find driver" (SQLite)
+
+**Solução**: 
+1. Execute: `php artisan config:clear`
+2. Verifique se o `.env` tem: `DB_CONNECTION=sqlite`
+3. Verifique se existe o arquivo `database/database.sqlite`
+
+### Problema: Servidor não inicia na porta 8000-8010
+
+**Solução**: Use o servidor embutido do PHP:
+```bash
+php -S 127.0.0.1:9100 -t public
+```
+
+### Problema: "composer install" falha
+
+**Solução**: 
+1. Verifique se o Composer está instalado: `composer --version`
+2. Se usar PHP do sistema, atualize para PHP 8.2+
+3. Use o PHP portátil incluído no projeto
+
+### Problema: Erro de permissão no Windows
+
+**Solução**: 
+1. Execute o terminal como Administrador
+2. Ou mude as permissões da pasta do projeto
+
+### Problema: "npm run dev" não funciona
+
+**Solução**:
+1. Verifique se o Node.js está instalado: `node --version`
+2. Execute: `npm install` ou `pnpm install`
+3. Tente: `npm run build` para compilação estática
+
+---
+
+## Estrutura do Projeto
+
+```
+intrafarma/
+├── app/                 # Código da aplicação Laravel
+├── database/           # Migrações e banco SQLite
+├── public/             # Arquivos públicos (index.php)
+├── resources/          # Views, CSS, JS
+├── tools/              # PHP portátil 8.2
+│   └── php82/bin/      # Executável e configuração PHP
+├── .env                # Configurações do ambiente
+└── composer.json       # Dependências PHP
+```
