@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\PacienteController;
 
 Route::get('/', function () {
 
@@ -35,6 +36,13 @@ Route::get('/', function () {
         'dbInfo' => $dbInfo
     ]);
 });
+
+//Rota Paciente
+//Permitir acesso apenas com login
+//Route::resource('/pacientes', PacienteController::class)->middleware('auth');
+//Permitir acesso sem login
+Route::resource('pacientes', PacienteController::class);
+
 
 // Rotas de autenticação
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -70,6 +78,7 @@ Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showRese
 
 Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
     ->name('password.update');
+
 
 // Rotas protegidas (requerem apenas autenticação)
 Route::middleware(['auth'])->group(function () {
