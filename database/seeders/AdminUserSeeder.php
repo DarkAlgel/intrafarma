@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
@@ -13,10 +13,14 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Administrador',
-            'email' => 'admin@intrafarma.com',
-            'password' => Hash::make('admin123'),
-        ]);
+        // Verifica se o usuário admin já existe
+        if (!User::where('email', 'admin@intrafarma.com')->exists()) {
+            User::create([
+                'name' => 'Administrador',
+                'email' => 'admin@intrafarma.com',
+                'password' => Hash::make('admin123'),
+                'email_verified_at' => now(), // Marca o email como verificado para o admin
+            ]);
+        }
     }
 }

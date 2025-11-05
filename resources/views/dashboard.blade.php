@@ -127,6 +127,18 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Dashboard</h1>
+                    <div>
+                        <span class="text-muted">Bem-vindo, {{ Auth::user()->name }}!</span>
+                        @if(!Auth::user()->hasVerifiedEmail())
+                            <span class="badge bg-warning ms-2">Email não verificado</span>
+                        @else
+                            <span class="badge bg-success ms-2">Email verificado</span>
+                        @endif
+                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger btn-sm ms-2">Sair</button>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="row">
