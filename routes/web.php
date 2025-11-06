@@ -9,79 +9,83 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\EstoqueController; 
+use App\Http\Controllers\EntradaController;
+
+
 
 Route::get('/', function () {
-
+    // ... Lógica de teste de conexão com o banco ...
     $dbStatus = '';
     $dbInfo = '';
 
     try {
-        // Tenta pegar a conexão PDO e rodar uma query de versão
         $pdo = DB::connection()->getPdo();
-        
         $dbStatus = 'Conectado com sucesso!';
-        
-        // Pega a versão do PostgreSQL para confirmar
         $dbInfo = DB::connection()->getPdo()->query('SELECT version()')->fetchColumn();
-
     } catch (\Exception $e) {
-        // Se falhar, captura a mensagem de erro
         $dbStatus = 'Falha na conexão!';
         $dbInfo = $e->getMessage();
     }
 
-    // Envia as variáveis $dbStatus e $dbInfo para a view
     return view('welcome', [
         'dbStatus' => $dbStatus,
         'dbInfo' => $dbInfo
     ]);
 });
 
-// Rotas de Pacientes - acesso somente autenticado
+// Rotas de Pacientes e outras protegidas - acesso somente autenticado
 Route::middleware(['auth'])->group(function () {
-    Route::resource('pacientes', PacienteController::class);
-});
-
-
-// Rotas de autenticação
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
-// Rotas de registro
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
-
-// Rotas de verificação de email
-Route::get('/email/verify', [VerificationController::class, 'show'])
-    ->middleware('auth')
-    ->name('verification.notice');
-
-Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
-    ->middleware(['auth', 'signed'])
-    ->name('verification.verify');
-
-Route::post('/email/resend', [VerificationController::class, 'resend'])
-    ->middleware(['auth', 'throttle:6,1'])
-    ->name('verification.resend');
-
-// Rotas de recuperação de senha
-Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
-    ->name('password.request');
-
-Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
-    ->name('password.email');
-
-Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
-    ->name('password.reset');
-
-Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
-    ->name('password.update');
-
-
-// Rotas protegidas (requerem apenas autenticação)
-Route::middleware(['auth'])->group(function () {
+    
+    // Rotas do Dashboard
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // MÓDULO: PACIENTES
+    Route::resource('pacientes', PacienteController::class);
+    
+    // MÓDULO: ESTOQUE (Visualização da Lista)
+    Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
+
+    // 🟢 MÓDULO: ENTRADA (Nova Entrada de Lote) ⬅️ CORREÇÃO E INCLUSÃO
+    // Rota para exibir o formulário de Nova Entrada
+    Route::get('/estoque/entrada/nova', [EntradaController::class, 'create'])->name('entradas.create');
+    // Rota para salvar os dados da Nova Entrada
+    Route::post('/estoque/entrada', [EntradaController::class, 'store'])->name('entradas.store');
+    
+    // 🟢 MÓDULO: DISPENSAÇÃO (Previsão para a Próxima Funcionalidade)
+    // Rota para exibir o formulário de Nova Dispensação (Saída)
+    Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])->name('dispensacoes.create');
+    // Rota para salvar os dados da Dispensação
+    Route::post('/dispensacao', [DispensacaoController::class, 'store'])->name('dispensacoes.store');
+    
+    // ... Aqui você pode adicionar outras rotas protegidas (Medicamentos, Fornecedores, etc.) ...
 });
+
+
+// Rotas de autenticação (sem alteração)
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+// ... o restante das rotas de Auth ...
+// Rotas de registro, verificação de email, recuperação de senha, etc.
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
+Route::get('/email/verify', [VerificationController::class, 'show'])
+    ->middleware('auth')
+    ->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+    ->middleware(['auth', 'signed'])
+    ->name('verification.verify');
+Route::post('/email/resend', [VerificationController::class, 'resend'])
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('verification.resend');
+Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
+    ->name('password.request');
+Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+    ->name('password.email');
+Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
+    ->name('password.reset');
+Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
+    ->name('password.update');

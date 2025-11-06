@@ -20,7 +20,8 @@
                 <i class="fas fa-pills mr-3"></i>
                 Medicamentos
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('estoque.index') }}" 
+               class="nav-link {{ request()->routeIs('estoque.index') ? 'active' : '' }}">
                 <i class="fas fa-boxes mr-3"></i>
                 Estoque
             </a>
