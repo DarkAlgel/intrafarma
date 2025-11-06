@@ -22,7 +22,7 @@ class PacienteController extends Controller
     public function store(StorePacienteRequest $request)
     {
         try {
-            Paciente::create($request->all());
+            Paciente::create($request->validated());
 
             return redirect()
                 ->route('pacientes.index')
@@ -49,7 +49,7 @@ class PacienteController extends Controller
         try {
             $paciente = Paciente::findOrFail($id);
 
-            $paciente->update($request->all());
+            $paciente->update($request->validated());
 
             return redirect()
                 ->route('pacientes.index')

@@ -1,60 +1,106 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h4><i class="bi bi-capsule"></i> IntraFarma</h4>
-            <p class="mb-0">Sistema de Gestão de Farmácia</p>
+<div class="auth-container flex items-center justify-center px-4">
+    <div class="auth-card w-full max-w-md">
+        <div class="auth-header text-white text-center p-8">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-pills text-3xl mr-3"></i>
+                <h1 class="text-2xl font-bold">IntraFarma</h1>
+            </div>
+            <p class="text-purple-100 text-sm">Sistema de Gestão de Farmácia</p>
         </div>
-        <div class="auth-body">
+        
+        <div class="p-8">
             
             @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <div class="alert-error mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <div>
+                            @foreach ($errors->all() as $error)
+                                <p class="text-sm">{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
             @endif
             
-            <form method="POST" action="{{ route('login') }}">
+            @if (session('status'))
+                <div class="alert-success mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <p class="text-sm">{{ session('status') }}</p>
+                    </div>
+                </div>
+            @endif
+            
+            <form method="POST" action="{{ route('login') }}" class="space-y-6">
                 @csrf
-                <div class="mb-3">
-                    <label for="email" class="form-label">E-mail</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required autofocus>
+                
+                <div>
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope mr-2 text-purple-600"></i>
+                        E-mail
+                    </label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           value="{{ old('email') }}" 
+                           required 
+                           autofocus
+                           class="form-input"
+                           placeholder="seu@email.com">
                 </div>
                 
-                <div class="mb-3">
-                    <label for="password" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
+                <div>
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock mr-2 text-purple-600"></i>
+                        Senha
+                    </label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           required
+                           class="form-input"
+                           placeholder="••••••••">
                 </div>
                 
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                    <label class="form-check-label" for="remember">Lembrar-me</label>
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           id="remember" 
+                           name="remember"
+                           class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500">
+                    <label for="remember" class="ml-2 text-sm text-gray-600">
+                        Lembrar-me
+                    </label>
                 </div>
                 
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary">Entrar</button>
-                </div>
-                
-                <div class="mt-2 text-center">
+                <div class="space-y-4">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Entrar
+                    </button>
+                    
                     @if (Route::has('password.request'))
-                        <a class="btn btn-link" href="{{ route('password.request') }}">
+                        <a href="{{ route('password.request') }}" 
+                           class="block text-center text-sm text-purple-600 hover:text-purple-800 transition-colors">
+                            <i class="fas fa-key mr-1"></i>
                             Esqueceu sua senha?
                         </a>
                     @endif
                 </div>
                 
-                <div class="mt-3 text-center">
-                    <p>Não tem uma conta? <a href="{{ route('register') }}">Registre-se</a></p>
+                <div class="text-center pt-4 border-t border-gray-200">
+                    <p class="text-sm text-gray-600">
+                        Não tem uma conta? 
+                        <a href="{{ route('register') }}" class="text-purple-600 hover:text-purple-800 font-medium transition-colors">
+                            Registre-se
+                        </a>
+                    </p>
                 </div>
             </form>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </div>
 @endsection

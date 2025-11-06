@@ -1,217 +1,164 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Intrafarma</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            background-color: #28a745;
-        }
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        .sidebar .nav-link {
-            font-weight: 500;
-            color: white;
-            padding: 10px 20px;
-        }
-        .sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        .sidebar .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        .sidebar .nav-link i {
-            margin-right: 10px;
-        }
-        main {
-            padding-top: 48px;
-        }
-        .navbar-brand {
-            padding-top: .75rem;
-            padding-bottom: .75rem;
-            font-size: 1rem;
-            background-color: rgba(0, 0, 0, .25);
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
-        }
-        .navbar .navbar-toggler {
-            top: .25rem;
-            right: 1rem;
-        }
-    </style>
-</head>
-<body>
-    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">INTRAFARMA</a>
-        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="w-100"></div>
-        <div class="navbar-nav">
-            <div class="nav-item text-nowrap d-flex align-items-center">
-                <span class="text-white me-2">Olá, {{ Auth::user()->name }}</span>
-                <form method="POST" action="{{ route('logout') }}" class="nav-link px-3">
-                    @csrf
-                    <button type="submit" class="btn btn-link text-white p-0">Sair</button>
-                </form>
-            </div>
+@extends('layouts.app')
+
+@section('content')
+<div class="flex min-h-screen bg-gray-100">
+    <!-- Sidebar -->
+    <div class="sidebar w-64 bg-purple-800 text-white">
+        <div class="p-4 border-b border-purple-700">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-pills mr-2"></i>
+                INTRAFARMA
+            </h1>
         </div>
-    </header>
+        
+        <nav class="mt-6">
+            <a href="#" class="nav-link active">
+                <i class="fas fa-home mr-3"></i>
+                Dashboard
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-pills mr-3"></i>
+                Medicamentos
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-boxes mr-3"></i>
+                Estoque
+            </a>
+            <a href="pacientes" class="nav-link">
+                <i class="fas fa-users mr-3"></i>
+                Pacientes
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-clipboard-list mr-3"></i>
+                Dispensações
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-truck mr-3"></i>
+                Fornecedores
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-cog mr-3"></i>
+                Configurações
+            </a>
+        </nav>
+    </div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                <div class="sidebar-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#">
-                                <i class="bi bi-house-door"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-capsule"></i>
-                                Medicamentos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-box-seam"></i>
-                                Estoque
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-people"></i>
-                                Pacientes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-clipboard2-pulse"></i>
-                                Dispensações
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-truck"></i>
-                                Fornecedores
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="bi bi-gear"></i>
-                                Configurações
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Dashboard</h1>
-                    <div>
-                        <span class="text-muted">Bem-vindo, {{ Auth::user()->name }}!</span>
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col md:ml-64">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="flex items-center justify-between px-6 py-4">
+                <h1 class="text-2xl font-semibold text-gray-800">Dashboard</h1>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-600">Bem-vindo, {{ Auth::user()->name }}!</span>
                         @if(!Auth::user()->hasVerifiedEmail())
-                            <span class="badge bg-warning ms-2">Email não verificado</span>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Email não verificado</span>
                         @else
-                            <span class="badge bg-success ms-2">Email verificado</span>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Email verificado</span>
                         @endif
-                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-danger btn-sm ms-2">Sair</button>
-                        </form>
                     </div>
+                    
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="btn-secondary">
+                            <i class="fas fa-sign-out-alt mr-1"></i>
+                            Sair
+                        </button>
+                    </form>
                 </div>
+            </div>
+        </header>
 
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <div class="card bg-primary text-white">
-                            <div class="card-body">
-                                <h5 class="card-title">Medicamentos</h5>
-                                <p class="card-text display-4">120</p>
-                                <p class="card-text">Total de medicamentos cadastrados</p>
-                            </div>
+        <!-- Content -->
+        <main class="flex-1 p-6">
+            <!-- Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-700">Medicamentos</h3>
+                            <p class="text-3xl font-bold text-blue-600">120</p>
+                            <p class="text-sm text-gray-500">Total cadastrados</p>
                         </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card bg-success text-white">
-                            <div class="card-body">
-                                <h5 class="card-title">Dispensações</h5>
-                                <p class="card-text display-4">45</p>
-                                <p class="card-text">Dispensações realizadas hoje</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card bg-warning text-dark">
-                            <div class="card-body">
-                                <h5 class="card-title">Alertas</h5>
-                                <p class="card-text display-4">8</p>
-                                <p class="card-text">Medicamentos com estoque baixo</p>
-                            </div>
+                        <div class="text-blue-500 text-4xl">
+                            <i class="fas fa-pills"></i>
                         </div>
                     </div>
                 </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-700">Dispensações</h3>
+                            <p class="text-3xl font-bold text-green-600">45</p>
+                            <p class="text-sm text-gray-500">Realizadas hoje</p>
+                        </div>
+                        <div class="text-green-500 text-4xl">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-700">Alertas</h3>
+                            <p class="text-3xl font-bold text-yellow-600">8</p>
+                            <p class="text-sm text-gray-500">Estoque baixo</p>
+                        </div>
+                        <div class="text-yellow-500 text-4xl">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                <h2>Medicamentos a vencer nos próximos 30 dias</h2>
-                <div class="table-responsive">
-                    <table class="table table-striped table-sm">
-                        <thead>
+            <!-- Table -->
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">Medicamentos a vencer nos próximos 30 dias</h2>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th>Código</th>
-                                <th>Nome</th>
-                                <th>Lote</th>
-                                <th>Validade</th>
-                                <th>Quantidade</th>
+                                <th class="table-header">Código</th>
+                                <th class="table-header">Nome</th>
+                                <th class="table-header">Lote</th>
+                                <th class="table-header">Validade</th>
+                                <th class="table-header">Quantidade</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="bg-white divide-y divide-gray-200">
                             <tr>
-                                <td>MED001</td>
-                                <td>Paracetamol 500mg</td>
-                                <td>L123456</td>
-                                <td>15/06/2023</td>
-                                <td>120</td>
+                                <td class="table-cell">MED001</td>
+                                <td class="table-cell">Paracetamol 500mg</td>
+                                <td class="table-cell">L123456</td>
+                                <td class="table-cell">15/06/2023</td>
+                                <td class="table-cell">120</td>
                             </tr>
                             <tr>
-                                <td>MED002</td>
-                                <td>Dipirona 500mg</td>
-                                <td>L789012</td>
-                                <td>20/06/2023</td>
-                                <td>85</td>
+                                <td class="table-cell">MED002</td>
+                                <td class="table-cell">Dipirona 500mg</td>
+                                <td class="table-cell">L789012</td>
+                                <td class="table-cell">20/06/2023</td>
+                                <td class="table-cell">85</td>
                             </tr>
                             <tr>
-                                <td>MED003</td>
-                                <td>Amoxicilina 500mg</td>
-                                <td>L345678</td>
-                                <td>25/06/2023</td>
-                                <td>45</td>
+                                <td class="table-cell">MED003</td>
+                                <td class="table-cell">Amoxicilina 500mg</td>
+                                <td class="table-cell">L345678</td>
+                                <td class="table-cell">25/06/2023</td>
+                                <td class="table-cell">45</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+@endsection

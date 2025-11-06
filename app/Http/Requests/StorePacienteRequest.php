@@ -3,21 +3,41 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 //Verifica se o cpf é valido antes de enviar para o banco
 class StorePacienteRequest extends FormRequest
 {
     public function rules()
     {
+        // Obtém o ID do paciente na rota (em update) para ignorar na regra unique
+        $pacienteId = $this->route('paciente') ?? $this->route('id');
+        if (is_object($pacienteId) && method_exists($pacienteId, 'getKey')) {
+            $pacienteId = $pacienteId->getKey();
+        }
+
         return [
             'nome' => 'required|string|max:255',
-            'cpf' => ['required', 'string', 'max:14', function($attribute, $value, $fail) {
+            'cpf' => [
+                'required',
+                'string',
+                'max:14',
+                Rule::unique('pacientes', 'cpf')->ignore($pacienteId),
+                function($attribute, $value, $fail) {
                 if (!$this->cpfValido($value)) {
                     $fail('O CPF informado não é válido.');
                 }
-            }],
+                }
+            ],
             'telefone' => 'nullable|string|max:20',
             'cidade' => 'nullable|string|max:255',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'cpf.unique' => 'Este CPF já está sendo utilizado por outro paciente.',
         ];
     }
 

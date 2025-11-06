@@ -37,11 +37,10 @@ Route::get('/', function () {
     ]);
 });
 
-//Rota Paciente
-//Permitir acesso apenas com login
-//Route::resource('/pacientes', PacienteController::class)->middleware('auth');
-//Permitir acesso sem login
-Route::resource('pacientes', PacienteController::class);
+// Rotas de Pacientes - acesso somente autenticado
+Route::middleware(['auth'])->group(function () {
+    Route::resource('pacientes', PacienteController::class);
+});
 
 
 // Rotas de autenticação

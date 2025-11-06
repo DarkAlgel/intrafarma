@@ -1,83 +1,106 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Intrafarma</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .register-container {
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .logo h1 {
-            color: #28a745;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="register-container">
-            <div class="logo">
-                <h1>INTRAFARMA</h1>
-                <p class="text-muted">Cadastro de Novo Usuário</p>
+@extends('layouts.app')
+
+@section('content')
+<div class="auth-container flex items-center justify-center px-4">
+    <div class="auth-card w-full max-w-md">
+        <div class="auth-header text-white text-center p-8">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-user-plus text-3xl mr-3"></i>
+                <h1 class="text-2xl font-bold">Criar Conta</h1>
             </div>
+            <p class="text-purple-100 text-sm">Cadastre-se no IntraFarma</p>
+        </div>
+        
+        <div class="p-8">
             
             @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <div class="alert-error mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <div>
+                            @foreach ($errors->all() as $error)
+                                <p class="text-sm">{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
             @endif
             
-            <form method="POST" action="{{ route('register') }}">
+            <form method="POST" action="{{ route('register') }}" class="space-y-6">
                 @csrf
-                <div class="mb-3">
-                    <label for="name" class="form-label">Nome</label>
-                    <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required autofocus>
+                
+                <div>
+                    <label for="name" class="form-label">
+                        <i class="fas fa-user mr-2 text-purple-600"></i>
+                        Nome Completo
+                    </label>
+                    <input type="text" 
+                           id="name" 
+                           name="name" 
+                           value="{{ old('name') }}" 
+                           required 
+                           autofocus
+                           class="form-input"
+                           placeholder="Seu nome completo">
                 </div>
                 
-                <div class="mb-3">
-                    <label for="email" class="form-label">E-mail</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required>
+                <div>
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope mr-2 text-purple-600"></i>
+                        E-mail
+                    </label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           value="{{ old('email') }}" 
+                           required
+                           class="form-input"
+                           placeholder="seu@email.com">
                 </div>
                 
-                <div class="mb-3">
-                    <label for="password" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
+                <div>
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock mr-2 text-purple-600"></i>
+                        Senha
+                    </label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           required
+                           class="form-input"
+                           placeholder="••••••••">
                 </div>
                 
-                <div class="mb-3">
-                    <label for="password_confirmation" class="form-label">Confirmar Senha</label>
-                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                <div>
+                    <label for="password_confirmation" class="form-label">
+                        <i class="fas fa-lock mr-2 text-purple-600"></i>
+                        Confirmar Senha
+                    </label>
+                    <input type="password" 
+                           id="password_confirmation" 
+                           name="password_confirmation" 
+                           required
+                           class="form-input"
+                           placeholder="Confirme sua senha">
                 </div>
                 
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-success">Registrar</button>
+                <div class="space-y-4">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Criar Conta
+                    </button>
                 </div>
                 
-                <div class="mt-3 text-center">
-                    <p>Já tem uma conta? <a href="{{ route('login') }}">Faça login</a></p>
+                <div class="text-center pt-4 border-t border-gray-200">
+                    <p class="text-sm text-gray-600">
+                        Já tem uma conta? 
+                        <a href="{{ route('login') }}" class="text-purple-600 hover:text-purple-800 font-medium transition-colors">
+                            Faça login
+                        </a>
+                    </p>
                 </div>
             </form>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+@endsection
