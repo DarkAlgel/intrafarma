@@ -7,21 +7,19 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
-    <!-- Styles -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     
-    <!-- Custom Styles -->
     <style>
-        /* Estilos personalizados para o sistema */
+        /* Estilos personalizados para o sistema (Mantidos do seu código original) */
         .sidebar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -134,16 +132,8 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        .alert-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            border: none;
-        }
-        
-        .alert-danger {
+        /* ALERTA DE ERRO para validação de formulário */
+        .alert-error {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
             padding: 16px;
@@ -152,15 +142,7 @@
             border: none;
         }
         
-        .alert-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            border: none;
-        }
-        
+        /* CLASSES DE STATUS (para tabela de estoque) */
         .status-badge {
             padding: 4px 12px;
             border-radius: 20px;
@@ -224,6 +206,46 @@
             @yield('content')
         </main>
     </div>
+
+    {{-- 💡 TOAST NOTIFICATION: Aviso de Sucesso/Erro no Canto Direito (mantido) 💡 --}}
+    @if(session()->has('success') || session()->has('error'))
+        @php
+            $type = session()->has('success') ? 'success' : 'error';
+            $message = session($type);
+            $bgColor = ($type === 'success') ? 'bg-green-600' : 'bg-red-600';
+            $icon = ($type === 'success') ? 'fas fa-check-circle' : 'fas fa-times-circle';
+        @endphp
+        
+        <div id="toast-message" 
+             class="fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-xl text-white transition-opacity duration-300 ease-out {{ $bgColor }}"
+             style="opacity: 0;"> 
+            <div class="flex items-center">
+                <i class="{{ $icon }} mr-2 text-xl"></i>
+                <span class="font-medium">{{ $message }}</span>
+            </div>
+        </div>
+
+        @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const toast = document.getElementById('toast-message');
+                
+                setTimeout(() => {
+                    toast.style.opacity = '1';
+                }, 100); 
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300); 
+                }, 5000); 
+            });
+        </script>
+        @endpush
+    @endif
+    {{-- FIM DO TOAST NOTIFICATION --}}
+
     @stack('scripts')
 </body>
 </html>

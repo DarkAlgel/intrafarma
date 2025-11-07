@@ -20,9 +20,9 @@
                 <i class="fas fa-pills mr-3"></i>
                 Medicamentos
             </a>
-            {{-- 🟢 Link CORRIGIDO para a Rota de Estoque --}}
+            {{-- Link Ativo para Estoque --}}
             <a href="{{ route('estoque.index') }}" 
-               class="nav-link {{ request()->routeIs('estoque.index') ? 'active' : '' }}">
+               class="nav-link {{ request()->routeIs('estoque.*') ? 'active' : '' }}">
                 <i class="fas fa-boxes mr-3"></i>
                 Estoque
             </a>
@@ -100,6 +100,7 @@
                                 <th class="table-header text-center"><i class="fas fa-exclamation-triangle mr-2"></i>Dias Vencimento</th>
                                 <th class="table-header text-center"><i class="fas fa-sort-numeric-up-alt mr-2"></i>Qtd. Disponível</th>
                                 <th class="table-header text-center"><i class="fas fa-info-circle mr-2"></i>Status</th>
+                                <th class="table-header text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -131,7 +132,7 @@
                                     <td class="table-cell text-center">
                                         @php
                                             $statusClass = '';
-                                            if ($item->status === 'Bloquear dispensação' || $item->dias_para_vencimento <= 0) {
+                                            if ($item->dias_para_vencimento <= 0) {
                                                 $statusClass = 'status-danger';
                                             } elseif ($item->status === 'Próximo de vencer') {
                                                 $statusClass = 'status-warning';
@@ -143,10 +144,22 @@
                                             {{ $item->status }}
                                         </span>
                                     </td>
+                                    
+                                    {{-- CÓDIGO CORRIGIDO (USANDO $item->id, pois é a PK da sua tabela Lotes) --}}
+                                    <td class="table-cell text-center">
+                                        <div class="flex items-center justify-center space-x-2">
+                                            <a href="{{ route('estoque.showEntradas', $item->lote_id) }}"
+                                               class="text-purple-600 hover:text-purple-800 transition duration-200"
+                                               title="Ver Histórico de Entradas deste lote">
+                                                <i class="fas fa-clipboard-list text-lg"></i>
+                                            </a>
+                                            {{-- Aqui você pode adicionar botões de Editar/Excluir do Lote se existirem --}}
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="table-cell text-center py-8">
+                                    <td colspan="6" class="table-cell text-center py-8">
                                         <div class="text-gray-500">
                                             <i class="fas fa-box-open text-4xl mb-4 text-gray-300"></i>
                                             <p class="text-lg font-medium">Nenhum lote em estoque ou entrada registrada.</p>

@@ -8,10 +8,11 @@ use App\Models\Medicamento;
 use App\Models\Fornecedor; 
 use App\Models\Lote; 
 use App\Models\Entrada; 
-use App\Models\Laboratorio; // Para o método de teste
-use App\Models\ClasseTerapeutica; // Para o método de teste
+use App\Models\Laboratorio; 
+use App\Models\ClasseTerapeutica; 
 use Illuminate\Support\Carbon; 
 use Exception;
+// Não incluímos o DB aqui, pois ele é mais usado no EstoqueController
 
 class EntradaController extends Controller
 {
@@ -47,31 +48,25 @@ class EntradaController extends Controller
             'fornecedor_id' => 'required|exists:fornecedores,id',
             'data_entrada' => 'required|date',
             
-            // Campos de Lote (agora obrigatórios e validados)
             'data_fabricacao' => 'required|date',
             'validade' => 'required|date|after:today', 
             'nome_comercial' => 'nullable|string|max:255',
             
             'numero_lote_fornecedor' => 'required|string|max:255',
             'quantidade_informada' => 'required|numeric|gt:0',
-            // A validação de ENUM deve ser feita garantindo que a string exista na lista
             'unidade' => 'required|string|max:255', 
             'unidades_por_embalagem' => 'nullable|numeric|gt:0',
             'estado' => 'nullable|string|max:255', 
             'observacao' => 'nullable|string',
         ]);
         
-        // 2. Lógica de Busca/Criação do Lote (Respeita a unicidade do DB)
-        
         try {
-            // Usa o mês inicial da validade para o agrupamento do Lote, respeitando a regra validade_mes
             $validadeMes = Carbon::parse($request->validade)->startOfMonth()->toDateString();
             
-            // Tenta encontrar um Lote existente ou cria um novo
             $lote = Lote::firstOrCreate(
                 [
                     'medicamento_id' => $request->medicamento_id,
-                    'validade' => $validadeMes, // Busca pelo mês de validade agrupado
+                    'validade' => $validadeMes, 
                 ],
                 [
                     'data_fabricacao' => $request->data_fabricacao,
@@ -81,11 +76,10 @@ class EntradaController extends Controller
                 ]
             );
 
-            // 3. Registro da Entrada
             Entrada::create([
                 'data_entrada' => $request->data_entrada,
                 'fornecedor_id' => $request->fornecedor_id,
-                'lote_id' => $lote->id, // ID do Lote recém-criado/encontrado
+                'lote_id' => $lote->id, 
                 'numero_lote_fornecedor' => $request->numero_lote_fornecedor,
                 'quantidade_informada' => $request->quantidade_informada,
                 'unidade' => $request->unidade,
@@ -94,18 +88,44 @@ class EntradaController extends Controller
                 'observacao' => $request->observacao,
             ]);
 
+            // Redirecionamento com mensagem de sucesso (Para o Toast!)
             return redirect()->route('estoque.index')->with('success', 'Entrada de lote registrada com sucesso!');
             
         } catch (Exception $e) {
-            // Em caso de erro de DB (como duplicidade no numero_lote_fornecedor), retorna com erro
-            return back()->withInput()->withErrors(['erro_db' => 'Falha ao registrar entrada. Detalhes: ' . $e->getMessage()]);
+            // Redirecionamento com mensagem de erro (Para o Toast!)
+            return back()->withInput()->with('error', 'Falha ao registrar entrada. Detalhe: ' . $e->getMessage()); 
         }
     }
     
+    // ----------------------------------------------------------------------
+    // 🚀 NOVO MÉTODO: Exibe Detalhes de Entradas de um Lote Específico
+    // ----------------------------------------------------------------------
+
     /**
-     * MÉTODO TEMPORÁRIO PARA POPULAR DADOS DE TESTE (Acionamento via Tinker).
-     * Este método insere um Laboratório, uma Classe Terapêutica, um Fornecedor e um Medicamento de teste.
+     * Busca e exibe todos os registros da tabela 'Entrada' relacionados a um Lote.
+     * @param int $loteId O ID do Lote (Primary Key da tabela 'lotes').
      */
+    public function showEntradas($loteId)
+    {
+        // Garante que o Lote exista e carrega o nome do Medicamento (Eager Loading)
+        $lote = Lote::with('medicamento')->findOrFail($loteId);
+
+        // Busca todas as transações de entrada para este lote
+        $entradas = Entrada::where('lote_id', $loteId)
+                            ->with('fornecedor') // Carrega os dados do fornecedor
+                            ->orderBy('data_entrada', 'desc')
+                            ->get();
+
+        return view('entradas.show_lote_entradas', [
+            'lote' => $lote,
+            'entradas' => $entradas,
+        ]);
+    }
+
+    /**
+     * MÉTODO TEMPORÁRIO PARA POPULAR DADOS DE TESTE (omitido para brevidade)
+     */
+
     public static function popularDadosTeste()
     {
         try {
@@ -115,8 +135,8 @@ class EntradaController extends Controller
                 ['codigo_classe' => 100],
                 ['nome' => 'Analgésicos e Antitérmicos']
             );
-
-            // 2. Fornecedor
+            
+            // 2. Fornecedor]
             Fornecedor::firstOrCreate(
                 ['nome' => 'Distribuidora Teste Rápido'],
                 ['tipo' => 'compra', 'contato' => 'teste@distribuidora.com']
@@ -127,12 +147,12 @@ class EntradaController extends Controller
                 ['codigo' => 'PAR0500'],
                 [
                     'nome' => 'Paracetamol 500mg Comprimido',
-                    'laboratorio_id' => $lab->id,          
-                    'classe_terapeutica_id' => $classe->id,   
-                    'tarja' => 'sem_tarja',         
-                    'forma_retirada' => 'MIP',      
-                    'forma_fisica' => 'solida',     
-                    'apresentacao' => 'caixa',      
+                    'laboratorio_id' => $lab->id, 
+                    'classe_terapeutica_id' => $classe->id, 
+                    'tarja' => 'sem_tarja', 
+                    'forma_retirada' => 'MIP', 
+                    'forma_fisica' => 'solida', 
+                    'apresentacao' => 'caixa', 
                     'unidade_base' => 'comprimido', 
                     'dosagem_valor' => 500.000,
                     'dosagem_unidade' => 'mg',

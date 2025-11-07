@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="flex min-h-screen bg-gray-100">
-    <!-- Sidebar -->
     <div class="sidebar w-64">
         <div class="p-4 border-b border-purple-700">
             <h1 class="text-xl font-bold flex items-center text-white">
@@ -44,9 +43,7 @@
         </nav>
     </div>
 
-    <!-- Main Content -->
     <div class="flex-1 flex flex-col md:ml-64">
-        <!-- Header -->
         <header class="bg-white shadow-sm border-b border-gray-200">
             <div class="flex items-center justify-between px-6 py-4">
                 <h1 class="text-2xl font-semibold text-gray-800">
@@ -77,9 +74,7 @@
             </div>
         </header>
 
-        <!-- Content -->
         <main class="flex-1 p-6">
-            <!-- Action Bar -->
             <div class="mb-6">
                 <a href="{{ route('pacientes.create') }}" class="btn-primary">
                     <i class="fas fa-user-plus mr-2"></i>
@@ -87,7 +82,6 @@
                 </a>
             </div>
 
-            <!-- Patients Table -->
             <div class="card">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h2 class="text-lg font-semibold text-gray-800">Lista de Pacientes</h2>
@@ -135,13 +129,16 @@
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         
+                                        {{-- 🚀 FORMULÁRIO MODIFICADO PARA SWEETALERT 🚀 --}}
                                         <form action="{{ route('pacientes.destroy', $paciente->id) }}" 
                                               method="POST"
-                                              onsubmit="return confirm('Deseja realmente excluir este paciente?')"
-                                              class="inline">
+                                              class="inline delete-form-{{ $paciente->id }}"> {{-- Classe única para o JS --}}
                                             @csrf 
                                             @method('DELETE')
-                                            <button type="submit" 
+                                            
+                                            {{-- MUDANÇA: type="button" e chama a função JS --}}
+                                            <button type="button" 
+                                                    onclick="confirmDelete('{{ $paciente->id }}', '{{ $paciente->nome }}')" 
                                                     class="text-red-600 hover:text-red-800 transition duration-200"
                                                     title="Excluir paciente">
                                                 <i class="fas fa-trash"></i>
@@ -181,4 +178,33 @@
         </main>
     </div>
 </div>
+
+{{-- 🚀 SCRIPT DO SWEETALERT - Adicionado no final da página 🚀 --}}
+@push('scripts')
+<script>
+/**
+ * Exibe o Modal SweetAlert de confirmação antes de excluir.
+ */
+function confirmDelete(pacienteId, pacienteNome) {
+    // Swal.fire é a função do SweetAlert2
+    Swal.fire({
+        title: 'Tem certeza?',
+        html: `Você realmente deseja <strong>excluir permanentemente</strong> o paciente <strong>${pacienteNome}</strong>? Esta ação é <strong>irreversível<\strong>.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33', // Vermelho para exclusão
+        cancelButtonColor: '#6c757d', // Cinza para cancelar
+        confirmButtonText: '<i class="fas fa-trash-alt"></i> Sim, Excluir!',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
+    }).then((result) => {
+        // Se o usuário clicar no botão de confirmação
+        if (result.isConfirmed) {
+            // Submete o formulário correspondente ao ID
+            document.querySelector(`.delete-form-${pacienteId}`).submit();
+        }
+    })
+}
+</script>
+@endpush
+
 @endsection

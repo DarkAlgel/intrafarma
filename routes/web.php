@@ -1,6 +1,5 @@
 <?php
 
-// Adicione esta linha no topo do seu arquivo de rotas
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
@@ -11,7 +10,8 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\EstoqueController; 
 use App\Http\Controllers\EntradaController;
-
+// Se o DispensacaoController já existir, use a linha abaixo. Caso contrário, mantenha comentada ou crie o Controller.
+// use App\Http\Controllers\DispensacaoController;
 
 
 Route::get('/', function () {
@@ -48,17 +48,22 @@ Route::middleware(['auth'])->group(function () {
     // MÓDULO: ESTOQUE (Visualização da Lista)
     Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
 
-    // 🟢 MÓDULO: ENTRADA (Nova Entrada de Lote) ⬅️ CORREÇÃO E INCLUSÃO
+    // 🚀 NOVO: Rota para Detalhes de Entradas por Lote
+    // Esta rota conecta o botão do estoque.index ao método showEntradas do controller
+    Route::get('/estoque/{loteId}/entradas', [EntradaController::class, 'showEntradas'])
+        ->name('estoque.showEntradas');
+    
+    // MÓDULO: ENTRADA (Nova Entrada de Lote)
     // Rota para exibir o formulário de Nova Entrada
     Route::get('/estoque/entrada/nova', [EntradaController::class, 'create'])->name('entradas.create');
     // Rota para salvar os dados da Nova Entrada
     Route::post('/estoque/entrada', [EntradaController::class, 'store'])->name('entradas.store');
     
-    // 🟢 MÓDULO: DISPENSAÇÃO (Previsão para a Próxima Funcionalidade)
-    // Rota para exibir o formulário de Nova Dispensação (Saída)
-    Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])->name('dispensacoes.create');
-    // Rota para salvar os dados da Dispensação
-    Route::post('/dispensacao', [DispensacaoController::class, 'store'])->name('dispensacoes.store');
+    // MÓDULO: DISPENSAÇÃO (Previsão para a Próxima Funcionalidade)
+    // Se o DispensacaoController não existir, você deve comentar estas duas linhas.
+    // Caso contrário, o Laravel dará um erro de "Target class does not exist".
+    // Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])->name('dispensacoes.create');
+    // Route::post('/dispensacao', [DispensacaoController::class, 'store'])->name('dispensacoes.store');
     
     // ... Aqui você pode adicionar outras rotas protegidas (Medicamentos, Fornecedores, etc.) ...
 });
@@ -66,8 +71,6 @@ Route::middleware(['auth'])->group(function () {
 
 // Rotas de autenticação (sem alteração)
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-// ... o restante das rotas de Auth ...
-// Rotas de registro, verificação de email, recuperação de senha, etc.
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');

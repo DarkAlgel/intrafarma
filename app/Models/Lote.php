@@ -1,28 +1,35 @@
 <?php
-// app/Models/Lote.php
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // Novo import necessário
 
 class Lote extends Model
 {
-    protected $table = 'lotes';
+    use HasFactory;
     
+    // Suas colunas permitidas para preenchimento em massa
     protected $fillable = [
-        'medicamento_id', 
-        'data_fabricacao', 
-        'validade', 
-        'nome_comercial', 
-        'ativo', 
-        'observacao'
+        'medicamento_id',
+        'data_fabricacao',
+        'validade',
+        'nome_comercial',
+        'ativo',
+        'observacao',
     ];
+
+    /**
+     * Define o relacionamento BelongsTo com o Modelo Medicamento.
+     * Necessário para Lote::with('medicamento') no controller.
+     */
+    public function medicamento(): BelongsTo
+    {
+        // Assumimos que a chave estrangeira na tabela 'lotes' é 'medicamento_id'
+        return $this->belongsTo(Medicamento::class, 'medicamento_id');
+    }
+
+    // Você pode adicionar mais relacionamentos ou métodos aqui conforme necessário...
     
-    protected $dates = [
-        'data_fabricacao', 
-        'validade'
-    ];
-    
-    // 🟢 CORREÇÃO FINAL: Desabilita timestamps para esta tabela
-    public $timestamps = false; 
 }
