@@ -43,7 +43,7 @@
                     <i class="fas fa-truck mr-3"></i>
                     Fornecedores
                 </a>
-                <a href="#" class="nav-link">
+                <a href="{{ route('configuracoes.index') }}" class="nav-link {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}">
                     <i class="fas fa-cog mr-3"></i>
                     Configurações
                 </a>
@@ -51,8 +51,8 @@
         </div>
         {{-- END: SIDEBAR (MENU) --}}
 
-        {{-- ⭐️ START: CONTEÚDO PRINCIPAL (REMOVIDO md:ml-64) ⭐️ --}}
-        <div class="flex-1 flex flex-col">
+        {{-- ⭐️ START: CONTEÚDO PRINCIPAL (Alinhamento Corrigido) ⭐️ --}}
+        <div class="flex-1 flex flex-col md:ml-64">
             <header class="bg-white shadow-sm border-b border-gray-200">
                 <div class="flex items-center justify-between px-6 py-4">
                     <h1 class="text-2xl font-semibold text-gray-800">
