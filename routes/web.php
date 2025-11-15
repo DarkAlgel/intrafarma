@@ -14,7 +14,8 @@ use App\Http\Controllers\FornecedorController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\PermissionAdminController;
-use App\Http\Controllers\DispensacaoController; // ⭐️ NOVO: Importando DispensacaoController
+use App\Http\Controllers\DispensacaoController; 
+use App\Http\Controllers\DashboardController; // ⭐️ NOVO: Importando DashboardController
 use App\Models\User;
 
 
@@ -42,9 +43,8 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
     
     // Rotas do Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    // ⭐️ CORRIGIDO: Conectando a rota do dashboard ao Controller para buscar dados reais ⭐️
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // MÓDULO: PACIENTES
     Route::resource('pacientes', PacienteController::class);
@@ -61,12 +61,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/estoque/entrada', [EntradaController::class, 'store'])->name('entradas.store');
     
     // MÓDULO: DISPENSAÇÃO
-    // ⭐️ CORRIGIDO: Usando o Controller importado
     Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])->name('dispensacoes.create');
     Route::post('/dispensacao', [DispensacaoController::class, 'store'])->name('dispensacoes.store');
     
     // MÓDULO: FORNECEDORES
-    // ⭐️ CORRIGIDO: Adicionando a rota POST para salvar o formulário do modal
     Route::get('/fornecedores', [FornecedorController::class, 'index'])->name('fornecedores.index');
     Route::post('/fornecedores', [FornecedorController::class, 'store'])->name('fornecedores.store');
     
