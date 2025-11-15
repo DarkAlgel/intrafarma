@@ -27,6 +27,13 @@
             left: 0;
             top: 0;
             z-index: 1000;
+            transition: transform 300ms ease, opacity 300ms ease, visibility 300ms ease;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
         
         .nav-link {
@@ -208,7 +215,7 @@
         <div class="flex min-h-screen bg-gray-100"> 
             
             {{-- SIDEBAR: Renderiza o menu fixo --}}
-            <div class="sidebar w-64 text-white">
+            <div class="sidebar w-64 text-white {{ Auth::check() ? '' : 'sidebar-hidden' }}" aria-hidden="{{ Auth::check() ? 'false' : 'true' }}">
                 <div class="p-4 border-b border-purple-700">
                     <h1 class="text-xl font-bold flex items-center">
                         <i class="fas fa-pills mr-2"></i>
@@ -248,7 +255,7 @@
             </div>
             
             {{-- CONTEÚDO PRINCIPAL: Aplica a margem de deslocamento --}}
-            <div class="flex-1 flex flex-col md:ml-64">
+            <div class="flex-1 flex flex-col {{ Auth::check() ? 'md:ml-64' : '' }}">
                  @yield('content') {{-- Aqui o conteúdo da sua página é injetado --}}
             </div>
             
