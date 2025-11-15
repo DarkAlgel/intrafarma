@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Fornecedor extends Model
 {
     protected $table = 'fornecedores';
-    protected $guarded = ['id'];
     
-    // 🟢 CORREÇÃO: Desabilita timestamps para esta tabela
+    // Permitir que esses campos sejam preenchidos em massa
+    protected $fillable = ['nome', 'tipo', 'contato'];
+    
+    // Desabilita timestamps, conforme seu dicionário de dados
     public $timestamps = false; 
 }

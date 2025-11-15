@@ -68,7 +68,11 @@ Route::middleware(['auth'])->group(function () {
     // ... Aqui você pode adicionar outras rotas protegidas (Medicamentos, Fornecedores, etc.) ...
 
     // MÓDULO: FORNECEDORES
+    // Rota para listar fornecedores
     Route::get('/fornecedores', [FornecedorController::class, 'index'])->name('fornecedores.index');
+    
+    // ⭐️ CORREÇÃO: Rota para salvar o novo fornecedor ⭐️
+    Route::post('/fornecedores', [FornecedorController::class, 'store'])->name('fornecedores.store');
 });
 
 // Auxiliar para testes visuais em ambiente local

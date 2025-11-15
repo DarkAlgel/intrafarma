@@ -9,6 +9,9 @@
 
     <script src="{{ asset('js/app.js') }}" defer></script>
     
+    {{-- ⭐️ ADIÇÃO NECESSÁRIA: ALPINE.JS ⭐️ --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> 
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -19,7 +22,7 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     
     <style>
-        /* Estilos personalizados para o sistema (Mantidos do seu código original) */
+        /* ... Seus estilos CSS permanecem aqui ... */
         .sidebar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
