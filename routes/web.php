@@ -10,6 +10,8 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\EstoqueController; 
 use App\Http\Controllers\EntradaController;
+use App\Http\Controllers\FornecedorController;
+use App\Models\User;
 // Se o DispensacaoController já existir, use a linha abaixo. Caso contrário, mantenha comentada ou crie o Controller.
 // use App\Http\Controllers\DispensacaoController;
 
@@ -66,7 +68,33 @@ Route::middleware(['auth'])->group(function () {
     // Route::post('/dispensacao', [DispensacaoController::class, 'store'])->name('dispensacoes.store');
     
     // ... Aqui você pode adicionar outras rotas protegidas (Medicamentos, Fornecedores, etc.) ...
+
+    // MÓDULO: FORNECEDORES
+    Route::get('/fornecedores', [FornecedorController::class, 'index'])->name('fornecedores.index');
 });
+
+// Auxiliar para testes visuais em ambiente local
+if (app()->environment('local')) {
+    Route::get('/_test/login', function () {
+        $user = User::first() ?? User::factory()->create(['email_verified_at' => now()]);
+        auth()->login($user);
+        return redirect()->to('/fornecedores');
+    });
+
+    Route::get('/_test/seed-fornecedores', function () {
+        $count = \App\Models\Fornecedor::count();
+        if ($count < 12) {
+            for ($i = $count; $i < 12; $i++) {
+                \App\Models\Fornecedor::create([
+                    'nome' => 'Fornecedor ' . ($i + 1),
+                    'tipo' => $i % 2 === 0 ? 'doacao' : 'compra',
+                    'contato' => '(11) 99999-000' . ($i % 10),
+                ]);
+            }
+        }
+        return response()->json(['seeded' => true, 'total' => \App\Models\Fornecedor::count()]);
+    });
+}
 
 
 // Rotas de autenticação (sem alteração)

@@ -34,7 +34,7 @@
                 <i class="fas fa-clipboard-list mr-3"></i>
                 Dispensações
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('fornecedores.index') }}" class="nav-link">
                 <i class="fas fa-truck mr-3"></i>
                 Fornecedores
             </a>
