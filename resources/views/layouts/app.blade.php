@@ -19,11 +19,11 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     
     <style>
-        /* Estilos personalizados para o sistema (Mantidos do seu código original) */
+        /* ... Seus estilos CSS permanecem aqui ... */
         .sidebar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            position: fixed;
+            position: fixed; /* Essencial para o alinhamento */
             left: 0;
             top: 0;
             z-index: 1000;
@@ -201,8 +201,13 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
+    
     <div id="app">
-        <div class="flex min-h-screen bg-gray-100">
+        
+        {{-- ⭐️ INÍCIO DA ESTRUTURA CORRETA DO LAYOUT MESTRE ⭐️ --}}
+        <div class="flex min-h-screen bg-gray-100"> 
+            
+            {{-- SIDEBAR: Renderiza o menu fixo --}}
             <div class="sidebar w-64 text-white">
                 <div class="p-4 border-b border-purple-700">
                     <h1 class="text-xl font-bold flex items-center">
@@ -241,13 +246,21 @@
                     </a>
                 </nav>
             </div>
+            
+            {{-- CONTEÚDO PRINCIPAL: Aplica a margem de deslocamento --}}
             <div class="flex-1 flex flex-col md:ml-64">
-                @yield('content')
+                 @yield('content') {{-- Aqui o conteúdo da sua página é injetado --}}
             </div>
+            
         </div>
+        {{-- ⭐️ FIM DA ESTRUTURA CORRETA DO LAYOUT MESTRE ⭐️ --}}
+        
     </div>
 
-    {{-- 💡 TOAST NOTIFICATION: Aviso de Sucesso/Erro no Canto Direito (mantido) 💡 --}}
+    {{-- 💡 ADIÇÃO NECESSÁRIA: ALPINE.JS E REORGANIZAÇÃO DO TOAST 💡 --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> 
+
+    {{-- O resto do seu código Toast e scripts deve ficar aqui --}}
     @if(session()->has('success') || session()->has('error'))
         @php
             $type = session()->has('success') ? 'success' : 'error';
@@ -284,11 +297,12 @@
         </script>
         @endpush
     @endif
-    {{-- FIM DO TOAST NOTIFICATION --}}
-
+    
     @stack('scripts')
+    {{-- Seu código JavaScript final permanece aqui, se necessário --}}
     <script>
       (function(){
+        // ... (Seu código JavaScript de controle de modal) ...
         function getModalBox(modal){ if(!modal) return null; const box = modal.querySelector(':scope > div'); return box || modal; }
         function showModal(modal, overlay, onShown){ if(!modal||!overlay){ console.error('Modal/overlay não encontrado'); return; } overlay.classList.remove('hidden'); modal.classList.remove('hidden'); const box=getModalBox(modal); overlay.classList.add('transition-opacity','duration-200','opacity-0'); box.classList.add('transition','duration-200','opacity-0','scale-95'); requestAnimationFrame(()=>{ overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); box.classList.remove('opacity-0','scale-95'); box.classList.add('opacity-100','scale-100'); if(typeof onShown==='function') onShown(); }); }
         function hideModal(modal, overlay){ if(!modal||!overlay){ console.error('Modal/overlay não encontrado para fechar'); return; } const box=getModalBox(modal); overlay.classList.remove('opacity-100'); overlay.classList.add('opacity-0'); box.classList.remove('opacity-100','scale-100'); box.classList.add('opacity-0','scale-95'); setTimeout(()=>{ modal.classList.add('hidden'); overlay.classList.add('hidden'); },200); }
@@ -305,7 +319,7 @@
           const btnRole = target.closest('.btnOpenRoleModal');
           const btnEdit = target.closest('.btnOpenEditModal');
           const btnPass = target.closest('.btnOpenPasswordModal');
-          const btnDel  = target.closest('.btnOpenDeleteModal');
+          const btnDel  = target.closest('.btnOpenDeleteModal');
           if(!(btnRole||btnEdit||btnPass||btnDel)) return;
           e.preventDefault();
           const btn = btnRole||btnEdit||btnPass||btnDel;
@@ -330,5 +344,5 @@
         });
       })();
     </script>
-  </body>
+  </body>
 </html>
