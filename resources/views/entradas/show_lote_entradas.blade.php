@@ -1,49 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="flex min-h-screen bg-gray-100">
-    <div class="sidebar w-64">
-        <div class="p-4 border-b border-purple-700">
-            <h1 class="text-xl font-bold flex items-center text-white">
-                <i class="fas fa-pills mr-2"></i>
-                INTRAFARMA
-            </h1>
-        </div>
-        
-        <nav class="mt-6">
-            <a href="{{ route('dashboard') }}" class="nav-link">
-                <i class="fas fa-home mr-3"></i>
-                Dashboard
-            </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-pills mr-3"></i>
-                Medicamentos
-            </a>
-            {{-- Link Ativo para Estoque --}}
-            <a href="{{ route('estoque.index') }}" class="nav-link active">
-                <i class="fas fa-boxes mr-3"></i>
-                Estoque
-            </a>
-            <a href="{{ route('pacientes.index') }}" class="nav-link">
-                <i class="fas fa-users mr-3"></i>
-                Pacientes
-            </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-clipboard-list mr-3"></i>
-                Dispensações
-            </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-truck mr-3"></i>
-                Fornecedores
-            </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-cog mr-3"></i>
-                Configurações
-            </a>
-        </nav>
-    </div>
-
-    <div class="flex-1 flex flex-col md:ml-64">
+    <div class="flex-1 flex flex-col">
         <header class="bg-white shadow-sm border-b border-gray-200">
             <div class="flex items-center justify-between px-6 py-4">
                 <h1 class="text-2xl font-semibold text-gray-800">
@@ -132,5 +90,4 @@
             </div>
         </main>
     </div>
-</div>
 @endsection

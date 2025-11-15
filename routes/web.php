@@ -11,6 +11,9 @@ use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\EstoqueController; 
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\FornecedorController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UserAdminController;
+use App\Http\Controllers\PermissionAdminController;
 use App\Models\User;
 // Se o DispensacaoController já existir, use a linha abaixo. Caso contrário, mantenha comentada ou crie o Controller.
 // use App\Http\Controllers\DispensacaoController;
@@ -73,6 +76,41 @@ Route::middleware(['auth'])->group(function () {
     
     // ⭐️ CORREÇÃO: Rota para salvar o novo fornecedor ⭐️
     Route::post('/fornecedores', [FornecedorController::class, 'store'])->name('fornecedores.store');
+
+    // MÓDULO: CONFIGURAÇÕES
+    Route::get('/configuracoes', [SettingsController::class, 'index'])->name('configuracoes.index');
+    Route::get('/configuracoes/conta', [SettingsController::class, 'account'])->name('configuracoes.account');
+    Route::get('/configuracoes/senha', [SettingsController::class, 'password'])->name('configuracoes.password');
+    Route::post('/configuracoes/conta', [SettingsController::class, 'updateAccount'])
+        ->middleware('perm:view_account')->name('configuracoes.account.update');
+    Route::post('/configuracoes/senha', [SettingsController::class, 'updatePassword'])
+        ->middleware('perm:change_password')->name('configuracoes.password.update');
+
+    // Administração de Usuários (proteção por permissão)
+    Route::get('/configuracoes/usuarios', [UserAdminController::class, 'index'])
+        ->middleware('perm:manage_users')->name('usuarios.index');
+    Route::post('/configuracoes/usuarios', [UserAdminController::class, 'store'])
+        ->middleware('perm:manage_users')->name('usuarios.store');
+    Route::put('/configuracoes/usuarios/{id}', [UserAdminController::class, 'update'])
+        ->middleware('perm:manage_users')->name('usuarios.update');
+
+    // Administração de Permissões
+    Route::get('/configuracoes/permissoes', [PermissionAdminController::class, 'index'])
+        ->middleware('perm:manage_permissions')->name('permissoes.index');
+    Route::post('/configuracoes/permissoes/assign', [PermissionAdminController::class, 'assign'])
+        ->middleware('perm:manage_permissions')->name('permissoes.assign');
+    Route::post('/configuracoes/permissoes/revoke', [PermissionAdminController::class, 'revoke'])
+        ->middleware('perm:manage_permissions')->name('permissoes.revoke');
+    Route::post('/configuracoes/permissoes/roles', [PermissionAdminController::class, 'createRole'])
+        ->middleware('perm:manage_permissions')->name('permissoes.roles.create');
+    Route::put('/configuracoes/permissoes/roles/{id}', [PermissionAdminController::class, 'updateRole'])
+        ->middleware('perm:manage_permissions')->name('permissoes.roles.update');
+    Route::delete('/configuracoes/permissoes/roles/{id}', [PermissionAdminController::class, 'deleteRole'])
+        ->middleware('perm:manage_permissions')->name('permissoes.roles.delete');
+    Route::get('/configuracoes/permissoes/export/csv', [PermissionAdminController::class, 'exportCsv'])
+        ->middleware('perm:manage_permissions')->name('permissoes.export.csv');
+    Route::get('/configuracoes/permissoes/export/pdf', [PermissionAdminController::class, 'exportPdf'])
+        ->middleware('perm:manage_permissions')->name('permissoes.export.pdf');
 });
 
 // Auxiliar para testes visuais em ambiente local
