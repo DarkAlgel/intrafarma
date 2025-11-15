@@ -14,9 +14,8 @@ use App\Http\Controllers\FornecedorController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\PermissionAdminController;
+use App\Http\Controllers\DispensacaoController; // ⭐️ NOVO: Importando DispensacaoController
 use App\Models\User;
-// Se o DispensacaoController já existir, use a linha abaixo. Caso contrário, mantenha comentada ou crie o Controller.
-// use App\Http\Controllers\DispensacaoController;
 
 
 Route::get('/', function () {
@@ -53,26 +52,24 @@ Route::middleware(['auth'])->group(function () {
     // MÓDULO: ESTOQUE (Visualização da Lista)
     Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
 
-    // 🚀 NOVO: Rota para Detalhes de Entradas por Lote
-    // Esta rota conecta o botão do estoque.index ao método showEntradas do controller
+    // Rota para Detalhes de Entradas por Lote
     Route::get('/estoque/{loteId}/entradas', [EntradaController::class, 'showEntradas'])
         ->name('estoque.showEntradas');
     
     // MÓDULO: ENTRADA (Nova Entrada de Lote)
-    // Rota para exibir o formulário de Nova Entrada
     Route::get('/estoque/entrada/nova', [EntradaController::class, 'create'])->name('entradas.create');
-    // Rota para salvar os dados da Nova Entrada
     Route::post('/estoque/entrada', [EntradaController::class, 'store'])->name('entradas.store');
     
     // MÓDULO: DISPENSAÇÃO
-    Route::get('/dispensacao/nova', [\App\Http\Controllers\DispensacaoController::class, 'create'])->name('dispensacoes.create');
-    Route::post('/dispensacao', [\App\Http\Controllers\DispensacaoController::class, 'store'])->name('dispensacoes.store');
+    // ⭐️ CORRIGIDO: Usando o Controller importado
+    Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])->name('dispensacoes.create');
+    Route::post('/dispensacao', [DispensacaoController::class, 'store'])->name('dispensacoes.store');
     
-    // ... Aqui você pode adicionar outras rotas protegidas (Medicamentos, Fornecedores, etc.) ...
-
     // MÓDULO: FORNECEDORES
+    // ⭐️ CORRIGIDO: Adicionando a rota POST para salvar o formulário do modal
     Route::get('/fornecedores', [FornecedorController::class, 'index'])->name('fornecedores.index');
-
+    Route::post('/fornecedores', [FornecedorController::class, 'store'])->name('fornecedores.store');
+    
     // MÓDULO: CONFIGURAÇÕES
     Route::get('/configuracoes', [SettingsController::class, 'index'])->name('configuracoes.index');
     Route::get('/configuracoes/conta', [SettingsController::class, 'account'])->name('configuracoes.account');
