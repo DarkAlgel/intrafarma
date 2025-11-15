@@ -27,15 +27,15 @@ class PatientUserSeeder extends Seeder
             ]);
         }
 
-        // Cria um registro na tabela pacientes para uso nas telas
-        // CPF válido para testes: 52998224725
-        if (!Paciente::where('cpf', '52998224725')->exists()) {
-            Paciente::create([
-                'nome' => 'Paciente Demo',
-                'cpf' => '52998224725',
-                'telefone' => '(11) 99999-0000',
-                'cidade' => 'São Paulo',
-            ]);
+        if (\Illuminate\Support\Facades\Schema::hasTable('pacientes')) {
+            if (!Paciente::where('cpf', '52998224725')->exists()) {
+                Paciente::create([
+                    'nome' => 'Paciente Demo',
+                    'cpf' => '52998224725',
+                    'telefone' => '(11) 99999-0000',
+                    'cidade' => 'São Paulo',
+                ]);
+            }
         }
     }
 }
