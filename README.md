@@ -1,6 +1,6 @@
 # Projeto Farmácia (IntraFarma)
 
-Este é um sistema de gestão de estoque de medicamentos para controle de entradas, saídas, lotes e validades, construído com Laravel.
+Este é um sistema de gestão de estoque de medicamentos para controle de entradas, saídas, lotes e validades, construído com PHP - Laravel.
 
 Este guia destina-se à configuração e execução do projeto em um ambiente de desenvolvimento local.
 
@@ -8,7 +8,7 @@ Este guia destina-se à configuração e execução do projeto em um ambiente de
 
 * PHP: 8.2+ (incluído no projeto como versão portátil)
 * Banco de Dados: SQLite (arquivo local)
-* Backend: Laravel 11
+* Backend: Laravel 11 (PHP)
 * Frontend: Tailwind CSS (compilado com Vite)
 * Gerenciadores de Pacotes: Composer (PHP) e NPM/PNPM (Node.js)
 
@@ -19,8 +19,9 @@ Este guia destina-se à configuração e execução do projeto em um ambiente de
 Antes de começar, garanta que você tenha os seguintes softwares instalados:
 
 1. **Git**: Para clonar o repositório
-2. **Composer**: O gerenciador de pacotes para PHP. Baixe em https://getcomposer.org/download/
-3. **Node.js (com npm/pnpm)**: Para o Tailwind/Vite. Baixe a versão LTS em https://nodejs.org/
+2. **PHP 8.2+**: Incluído no projeto como versão portátil.
+3. **Composer**: O gerenciador de pacotes para PHP. Baixe em https://getcomposer.org/download/
+4. **Node.js (com npm/pnpm)**: Para o Tailwind/Vite. Baixe a versão LTS em https://nodejs.org/
 
 **Nota**: O projeto inclui uma versão portátil do PHP 8.2 configurada, então você não precisa instalar PHP separadamente.
 
@@ -35,7 +36,7 @@ Siga estes passos para configurar o ambiente e rodar o projeto.
 Clone o projeto para sua pasta de projetos:
 
 ```bash
-git clone https://github.com/vaiserk/intrafarma.git
+git clone https://github.com/DarkAlgel/intrafarma.git
 cd intrafarma
 ```
 
