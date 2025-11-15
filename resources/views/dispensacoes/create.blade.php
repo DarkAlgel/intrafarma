@@ -1,0 +1,143 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="flex min-h-screen bg-gray-100">
+    <div class="sidebar w-64">
+        <div class="p-4 border-b border-purple-700">
+            <h1 class="text-xl font-bold flex items-center text-white">
+                <i class="fas fa-pills mr-2"></i>
+                INTRAFARMA
+            </h1>
+        </div>
+        
+        <nav class="mt-6">
+            <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="fas fa-home mr-3"></i>
+                Dashboard
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-pills mr-3"></i>
+                Medicamentos
+            </a>
+            <a href="{{ route('estoque.index') }}" 
+               class="nav-link {{ request()->routeIs('estoque.*') ? 'active' : '' }}">
+                <i class="fas fa-boxes mr-3"></i>
+                Estoque
+            </a>
+            <a href="{{ route('pacientes.index') }}" class="nav-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
+                <i class="fas fa-users mr-3"></i>
+                Pacientes
+            </a>
+            <a href="{{ route('dispensacoes.create') }}" class="nav-link active">
+                <i class="fas fa-clipboard-list mr-3"></i>
+                Dispensações
+            </a>
+            <a href="{{ route('fornecedores.index') }}" class="nav-link">
+                <i class="fas fa-truck mr-3"></i>
+                Fornecedores
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-cog mr-3"></i>
+                Configurações
+            </a>
+        </nav>
+    </div>
+
+    <div class="flex-1 flex flex-col md:ml-64">
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="flex items-center justify-between px-6 py-4">
+                <h1 class="text-2xl font-semibold text-gray-800">
+                    <i class="fas fa-clipboard-list mr-2 text-purple-600"></i>
+                    Nova Dispensação
+                </h1>
+                <div class="flex items-center space-x-4">
+                    @auth
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-600">{{ Auth::user()->name }}</span>
+                    </div>
+                    @endauth
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6">
+            <div class="card">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">Registrar Dispensação</h2>
+                    <p class="text-sm text-gray-600 mt-1">Selecione paciente, medicamento/lote e informe quantidade</p>
+                </div>
+
+                <form method="POST" action="{{ route('dispensacoes.store') }}" class="px-6 py-6 space-y-6">
+                    @csrf
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Paciente</label>
+                        <select name="paciente_id" class="form-input">
+                            <option value="">Selecione um paciente</option>
+                            @foreach($pacientes as $p)
+                                <option value="{{ $p->id }}" {{ old('paciente_id') == $p->id ? 'selected' : '' }}>
+                                    {{ $p->nome }} — CPF: {{ $p->cpf }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('paciente_id')
+                            <div class="alert-error mt-2">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Lote / Medicamento</label>
+                        <select name="lote_id" class="form-input">
+                            <option value="">Selecione um lote disponível</option>
+                            @foreach($lotes as $l)
+                                <option value="{{ $l->lote_id }}" {{ old('lote_id') == $l->lote_id ? 'selected' : '' }}>
+                                    {{ $l->medicamento }} | Validade: {{ date('d/m/Y', strtotime($l->validade)) }} | Saldo: {{ number_format($l->quantidade_disponivel, 2, ',', '.') }} {{ $l->unidade_base }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('lote_id')
+                            <div class="alert-error mt-2">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quantidade informada</label>
+                            <input type="number" step="0.001" min="0" name="quantidade_informada" value="{{ old('quantidade_informada') }}" class="form-input" />
+                            @error('quantidade_informada')
+                                <div class="alert-error mt-2">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Unidade</label>
+                            <select name="unidade" class="form-input">
+                                <option value="">Selecione a unidade</option>
+                                @foreach($unidades as $u)
+                                    <option value="{{ $u }}" {{ old('unidade') == $u ? 'selected' : '' }}>{{ ucfirst($u) }}</option>
+                                @endforeach
+                            </select>
+                            @error('unidade')
+                                <div class="alert-error mt-2">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Número da receita (se aplicável)</label>
+                            <input type="text" name="numero_receita" value="{{ old('numero_receita') }}" class="form-input" />
+                            @error('numero_receita')
+                                <div class="alert-error mt-2">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save mr-2"></i>
+                            Registrar Dispensação
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+@endsection

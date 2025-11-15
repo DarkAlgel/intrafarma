@@ -30,7 +30,7 @@
                 <i class="fas fa-users mr-3"></i>
                 Pacientes
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('dispensacoes.create') }}" class="nav-link {{ request()->routeIs('dispensacoes.*') ? 'active' : '' }}">
                 <i class="fas fa-clipboard-list mr-3"></i>
                 Dispensações
             </a>

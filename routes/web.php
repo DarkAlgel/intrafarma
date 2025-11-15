@@ -61,11 +61,9 @@ Route::middleware(['auth'])->group(function () {
     // Rota para salvar os dados da Nova Entrada
     Route::post('/estoque/entrada', [EntradaController::class, 'store'])->name('entradas.store');
     
-    // MÓDULO: DISPENSAÇÃO (Previsão para a Próxima Funcionalidade)
-    // Se o DispensacaoController não existir, você deve comentar estas duas linhas.
-    // Caso contrário, o Laravel dará um erro de "Target class does not exist".
-    // Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])->name('dispensacoes.create');
-    // Route::post('/dispensacao', [DispensacaoController::class, 'store'])->name('dispensacoes.store');
+    // MÓDULO: DISPENSAÇÃO
+    Route::get('/dispensacao/nova', [\App\Http\Controllers\DispensacaoController::class, 'create'])->name('dispensacoes.create');
+    Route::post('/dispensacao', [\App\Http\Controllers\DispensacaoController::class, 'store'])->name('dispensacoes.store');
     
     // ... Aqui você pode adicionar outras rotas protegidas (Medicamentos, Fornecedores, etc.) ...
 

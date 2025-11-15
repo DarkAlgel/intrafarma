@@ -20,15 +20,15 @@
                 <i class="fas fa-pills mr-3"></i>
                 Medicamentos
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('estoque.index') }}" class="nav-link {{ request()->routeIs('estoque.*') ? 'active' : '' }}">
                 <i class="fas fa-boxes mr-3"></i>
                 Estoque
             </a>
-            <a href="pacientes" class="nav-link">
+            <a href="{{ route('pacientes.index') }}" class="nav-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
                 <i class="fas fa-users mr-3"></i>
                 Pacientes
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('dispensacoes.create') }}" class="nav-link {{ request()->routeIs('dispensacoes.*') ? 'active' : '' }}">
                 <i class="fas fa-clipboard-list mr-3"></i>
                 Dispensações
             </a>

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo; // Novo import necessário
 class Lote extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     
     // Suas colunas permitidas para preenchimento em massa
     protected $fillable = [

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo; // Novo import necessário
 class Entrada extends Model
 {
     use HasFactory;
+    public $timestamps = false;
     
     // Suas colunas permitidas para preenchimento em massa
     protected $fillable = [
@@ -17,6 +18,7 @@ class Entrada extends Model
         'lote_id',
         'numero_lote_fornecedor',
         'quantidade_informada',
+        'quantidade_base',
         'unidade',
         'unidades_por_embalagem',
         'estado',
