@@ -109,8 +109,12 @@ class UserAdminController extends Controller
             'permission_ids' => ['array'],
             'permission_ids.*' => ['integer'],
             'set_permission_id' => ['nullable', 'integer'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
         $user->update(['name' => $data['name'], 'email' => $data['email']]);
+        if (!empty($data['password'])) {
+            $user->update(['password' => Hash::make($data['password'])]);
+        }
         if (!empty($data['role_id'])) {
             UserRole::where('user_id', $user->id)->delete();
             UserRole::create(['user_id' => $user->id, 'role_id' => $data['role_id']]);
@@ -143,6 +147,15 @@ class UserAdminController extends Controller
                 'details' => json_encode(['permission_id' => $data['set_permission_id']]),
             ]);
         }
+        return redirect()->route('usuarios.index');
+    }
+
+    public function destroy(int $id)
+    {
+        $user = User::findOrFail($id);
+        UserRole::where('user_id', $user->id)->delete();
+        UserPermission::where('user_id', $user->id)->delete();
+        $user->delete();
         return redirect()->route('usuarios.index');
     }
 }

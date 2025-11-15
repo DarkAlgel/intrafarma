@@ -9,9 +9,6 @@
 
     <script src="{{ asset('js/app.js') }}" defer></script>
     
-    {{-- ⭐️ ADIÇÃO NECESSÁRIA: ALPINE.JS ⭐️ --}}
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> 
-    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -22,7 +19,7 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     
     <style>
-        /* ... Seus estilos CSS permanecem aqui ... */
+        /* Estilos personalizados para o sistema (Mantidos do seu código original) */
         .sidebar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -290,5 +287,48 @@
     {{-- FIM DO TOAST NOTIFICATION --}}
 
     @stack('scripts')
-</body>
+    <script>
+      (function(){
+        function getModalBox(modal){ if(!modal) return null; const box = modal.querySelector(':scope > div'); return box || modal; }
+        function showModal(modal, overlay, onShown){ if(!modal||!overlay){ console.error('Modal/overlay não encontrado'); return; } overlay.classList.remove('hidden'); modal.classList.remove('hidden'); const box=getModalBox(modal); overlay.classList.add('transition-opacity','duration-200','opacity-0'); box.classList.add('transition','duration-200','opacity-0','scale-95'); requestAnimationFrame(()=>{ overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); box.classList.remove('opacity-0','scale-95'); box.classList.add('opacity-100','scale-100'); if(typeof onShown==='function') onShown(); }); }
+        function hideModal(modal, overlay){ if(!modal||!overlay){ console.error('Modal/overlay não encontrado para fechar'); return; } const box=getModalBox(modal); overlay.classList.remove('opacity-100'); overlay.classList.add('opacity-0'); box.classList.remove('opacity-100','scale-100'); box.classList.add('opacity-0','scale-95'); setTimeout(()=>{ modal.classList.add('hidden'); overlay.classList.add('hidden'); },200); }
+        function closeAllModals(){ ['modalCreate','modalRole','modalEdit','modalPassword','modalDelete'].forEach(id=>{ const m=document.getElementById(id); if(m) m.classList.add('hidden'); }); ['overlayCreate','overlayRole','overlayEdit','overlayPassword','overlayDelete'].forEach(id=>{ const o=document.getElementById(id); if(o) o.classList.add('hidden'); }); }
+
+        document.addEventListener('DOMContentLoaded', ()=>{
+          [['overlayEdit','modalEdit'],['overlayPassword','modalPassword'],['overlayDelete','modalDelete'],['overlayRole','modalRole'],['overlayCreate','modalCreate']].forEach(([oid,mid])=>{
+            const o=document.getElementById(oid), m=document.getElementById(mid); if(o&&m){ o.addEventListener('click', ()=>hideModal(m,o)); }
+          });
+        });
+
+        document.addEventListener('click', (e)=>{
+          const target = e.target;
+          const btnRole = target.closest('.btnOpenRoleModal');
+          const btnEdit = target.closest('.btnOpenEditModal');
+          const btnPass = target.closest('.btnOpenPasswordModal');
+          const btnDel  = target.closest('.btnOpenDeleteModal');
+          if(!(btnRole||btnEdit||btnPass||btnDel)) return;
+          e.preventDefault();
+          const btn = btnRole||btnEdit||btnPass||btnDel;
+          const userId = btn.getAttribute('data-user');
+          const row = btn.closest('tr');
+          const nameCell = row ? row.querySelector('td[data-name]') : null;
+          const emailSpan = row ? row.querySelector('td:nth-child(2) span[aria-invalid]') : null;
+          const name = (nameCell?.textContent||'').trim();
+          const email = (emailSpan?.textContent||'').trim();
+          closeAllModals();
+          if(btnRole){ const overlay=document.getElementById('overlayRole'); const modal=document.getElementById('modalRole'); const roleFormName=document.getElementById('roleFormName'); const roleFormEmail=document.getElementById('roleFormEmail'); if(roleFormName) roleFormName.value=name; if(roleFormEmail) roleFormEmail.value=email; showModal(modal, overlay, ()=>{ const roleSearch=document.getElementById('roleSearch'); roleSearch&&roleSearch.focus(); }); return; }
+          if(btnEdit){ const overlay=document.getElementById('overlayEdit'); const modal=document.getElementById('modalEdit'); const editName=document.getElementById('editName'); const editEmail=document.getElementById('editEmail'); if(editName) editName.value=name; if(editEmail) editEmail.value=email; showModal(modal, overlay, ()=>{ editName&&editName.focus(); }); return; }
+          if(btnPass){ const overlay=document.getElementById('overlayPassword'); const modal=document.getElementById('modalPassword'); const passName=document.getElementById('passwordFormName'); const passEmail=document.getElementById('passwordFormEmail'); const passNew=document.getElementById('passwordNew'); if(passName) passName.value=name; if(passEmail) passEmail.value=email; showModal(modal, overlay, ()=>{ passNew&&passNew.focus(); }); return; }
+          if(btnDel){ const overlay=document.getElementById('overlayDelete'); const modal=document.getElementById('modalDelete'); showModal(modal, overlay); return; }
+        });
+
+        window.addEventListener('keydown', (e)=>{
+          if(e.key!== 'Escape') return;
+          [['overlayEdit','modalEdit'],['overlayPassword','modalPassword'],['overlayDelete','modalDelete'],['overlayRole','modalRole'],['overlayCreate','modalCreate']].forEach(([oid,mid])=>{
+            const o=document.getElementById(oid), m=document.getElementById(mid); if(o&&m && !m.classList.contains('hidden')) hideModal(m,o);
+          });
+        });
+      })();
+    </script>
+  </body>
 </html>

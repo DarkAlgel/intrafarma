@@ -56,12 +56,24 @@
                                     </div>
                                 </td>
                                 <td class="table-cell">
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" data-user="{{ $u->id }}" class="btn-primary inline-flex items-center p-2 btnOpenRoleModal" aria-label="Alterar Papel" aria-haspopup="dialog" aria-controls="modalRole"><i class="fas fa-user-tag"></i></button>
-                                        <button type="button" data-user="{{ $u->id }}" class="btn-secondary inline-flex items-center p-2 btnOpenPermModal" aria-label="Alterar Permissão" aria-haspopup="dialog" aria-controls="modalPerm"><i class="fas fa-key"></i></button>
-                                        <button type="button" data-user="{{ $u->id }}" class="btn-secondary inline-flex items-center p-2 btnOpenEditModal" aria-label="Editar" aria-haspopup="dialog" aria-controls="modalEdit"><i class="fas fa-edit"></i></button>
-                                        <button type="button" data-user="{{ $u->id }}" class="btn-secondary inline-flex items-center p-2 btnOpenPasswordModal" aria-label="Alterar Senha" aria-haspopup="dialog" aria-controls="modalPassword"><i class="fas fa-lock"></i></button>
-                                        <button type="button" data-user="{{ $u->id }}" class="btn-secondary inline-flex items-center p-2 btnOpenDeleteModal" aria-label="Excluir" aria-haspopup="dialog" aria-controls="modalDelete"><i class="fas fa-trash"></i></button>
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative flex items-center gap-2 group">
+                                            <button type="button" data-user="{{ $u->id }}" class="inline-flex items-center p-2 rounded hover:bg-gray-100 btnOpenRoleModal" aria-label="Alterar Papel" aria-haspopup="dialog" aria-controls="modalRole"><i class="fas fa-user-tag text-purple-600 hover:text-purple-700"></i></button>
+                                            <div id="tooltipRole{{ $u->id }}" role="tooltip" class="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none whitespace-nowrap">Alterar Papel<div class="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div></div>
+                                        </div>
+                                        
+                                        <div class="relative flex items-center gap-2 group">
+                                            <button type="button" data-user="{{ $u->id }}" class="inline-flex items-center p-2 rounded hover:bg-gray-100 btnOpenEditModal" aria-label="Editar" aria-haspopup="dialog" aria-controls="modalEdit"><i class="fas fa-edit text-blue-600 hover:text-blue-700"></i></button>
+                                            <div id="tooltipEdit{{ $u->id }}" role="tooltip" class="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none whitespace-nowrap">Editar<div class="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div></div>
+                                        </div>
+                                        <div class="relative flex items-center gap-2 group">
+                                            <button type="button" data-user="{{ $u->id }}" class="inline-flex items-center p-2 rounded hover:bg-gray-100 btnOpenPasswordModal" aria-label="Alterar Senha" aria-haspopup="dialog" aria-controls="modalPassword"><i class="fas fa-lock text-amber-600 hover:text-amber-700"></i></button>
+                                            <div id="tooltipPass{{ $u->id }}" role="tooltip" class="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none whitespace-nowrap">Alterar Senha<div class="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div></div>
+                                        </div>
+                                        <div class="relative flex items-center gap-2 group">
+                                            <button type="button" data-user="{{ $u->id }}" class="inline-flex items-center p-2 rounded hover:bg-gray-100 btnOpenDeleteModal" aria-label="Excluir" aria-haspopup="dialog" aria-controls="modalDelete"><i class="fas fa-trash text-red-600 hover:text-red-700"></i></button>
+                                            <div id="tooltipDelete{{ $u->id }}" role="tooltip" class="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none whitespace-nowrap">Excluir<div class="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div></div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -90,8 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalCreate = document.getElementById('modalCreate');
   const overlayCreate = document.getElementById('overlayCreate');
   const formCreate = document.getElementById('formCreate');
-  function openCreate(){ modalCreate.classList.remove('hidden'); overlayCreate.classList.remove('hidden'); setTimeout(()=>document.getElementById('create_name').focus(),0); }
-  function closeCreate(){ modalCreate.classList.add('hidden'); overlayCreate.classList.add('hidden'); }
+  function openCreate(){ closeAllModals(); showModal(modalCreate, overlayCreate, ()=>document.getElementById('create_name').focus()); }
+  function closeCreate(){ hideModal(modalCreate, overlayCreate); }
   if(btnOpenCreate){btnOpenCreate.addEventListener('click', openCreate)}
   if(overlayCreate){overlayCreate.addEventListener('click', closeCreate)}
   const btnCancelCreate = document.getElementById('btnCancelCreate');
@@ -161,40 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return { name: (nameCell?.textContent || '').trim(), email: (emailSpan?.textContent || '').trim() };
   };
 
-  const permOverlay = document.getElementById('overlayPerm');
-  const permModal = document.getElementById('modalPerm');
-  const permSearch = document.getElementById('permSearch');
-  const permList = document.getElementById('permList');
-  const permForm = document.getElementById('permForm');
-  const permFormName = document.getElementById('permFormName');
-  const permFormEmail = document.getElementById('permFormEmail');
-  function openPerm(userId){ currentUserId = userId; const rd = getRowData(userId); if(permFormName) permFormName.value = rd.name; if(permFormEmail) permFormEmail.value = rd.email; renderPermList(''); permModal.classList.remove('hidden'); permOverlay.classList.remove('hidden'); setTimeout(()=>permSearch.focus(),0); }
-  function closePerm(){ permModal.classList.add('hidden'); permOverlay.classList.add('hidden'); }
-  document.querySelectorAll('.btnOpenPermModal').forEach(btn=>btn.addEventListener('click', ()=>openPerm(btn.getAttribute('data-user'))));
-  permOverlay && permOverlay.addEventListener('click', closePerm);
-  const btnCancelPerm = document.getElementById('btnCancelPerm');
-  btnCancelPerm && btnCancelPerm.addEventListener('click', closePerm);
-  const btnCancelPermFooter = document.getElementById('btnCancelPermFooter');
-  btnCancelPermFooter && btnCancelPermFooter.addEventListener('click', closePerm);
-  function renderPermList(q){
-    permList.innerHTML='';
-    @foreach($permissions as $p)
-      if(!q || '{{ $p->name }}'.toLowerCase().includes(q.toLowerCase())){
-        const li = document.createElement('label');
-        li.className = 'block p-3 rounded border hover:bg-gray-50 cursor-pointer';
-        li.innerHTML = `<input type=\"radio\" name=\"set_permission_id\" value=\"{{ $p->id }}\" class=\"mr-2\"> <span class=\"font-medium text-sm\">{{ $p->name }}</span><div class=\"text-xs text-gray-600 mt-1\">{{ $permissionDescriptions[$p->id] }}</div>`;
-        permList.appendChild(li);
-      }
-    @endforeach
-  }
-  permSearch && permSearch.addEventListener('input', (e)=>renderPermList(e.target.value));
-  const btnConfirmPerm = document.getElementById('btnConfirmPerm');
-  btnConfirmPerm && btnConfirmPerm.addEventListener('click', ()=>{
-    if(!currentUserId) return;
-    setLoading(btnConfirmPerm, true);
-    permForm.setAttribute('action', `{{ url('/configuracoes/usuarios') }}/${currentUserId}`);
-    permForm.submit();
-  });
+  
 
   // Role modal
   const roleOverlay = document.getElementById('overlayRole');
@@ -204,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const roleForm = document.getElementById('roleForm');
   const roleFormName = document.getElementById('roleFormName');
   const roleFormEmail = document.getElementById('roleFormEmail');
-  function openRole(userId){ currentUserId = userId; const rd = getRowData(userId); if(roleFormName) roleFormName.value = rd.name; if(roleFormEmail) roleFormEmail.value = rd.email; renderRoleList(''); roleModal.classList.remove('hidden'); roleOverlay.classList.remove('hidden'); setTimeout(()=>roleSearch.focus(),0); }
+  function openRole(userId){ currentUserId = userId; const rd = getRowData(userId); if(roleFormName) roleFormName.value = rd.name; if(roleFormEmail) roleFormEmail.value = rd.email; renderRoleList(''); closeAllModals(); showModal(roleModal, roleOverlay, ()=>roleSearch && roleSearch.focus()); }
   function closeRole(){ roleModal.classList.add('hidden'); roleOverlay.classList.add('hidden'); }
   document.querySelectorAll('.btnOpenRoleModal').forEach(btn=>btn.addEventListener('click', ()=>openRole(btn.getAttribute('data-user'))));
   roleOverlay && roleOverlay.addEventListener('click', closeRole);
@@ -237,9 +216,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const editForm = document.getElementById('editForm');
   const editName = document.getElementById('editName');
   const editEmail = document.getElementById('editEmail');
-  function openEdit(userId){ currentUserId = userId; const rd = getRowData(userId); if(editName) editName.value = rd.name; if(editEmail) editEmail.value = rd.email; editModal.classList.remove('hidden'); editOverlay.classList.remove('hidden'); setTimeout(()=>editName.focus(),0); }
-  function closeEdit(){ editModal.classList.add('hidden'); editOverlay.classList.add('hidden'); }
-  document.querySelectorAll('.btnOpenEditModal').forEach(btn=>btn.addEventListener('click', ()=>openEdit(btn.getAttribute('data-user'))));
+  function openEdit(userId){ currentUserId = userId; const rd = getRowData(userId); if(editName) editName.value = rd.name; if(editEmail) editEmail.value = rd.email; closeAllModals(); showModal(editModal, editOverlay, ()=>editName && editName.focus()); }
+  function closeEdit(){ hideModal(editModal, editOverlay); }
+  
   editOverlay && editOverlay.addEventListener('click', closeEdit);
   const btnCancelEdit = document.getElementById('btnCancelEdit');
   btnCancelEdit && btnCancelEdit.addEventListener('click', closeEdit);
@@ -251,9 +230,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const passNew = document.getElementById('passwordNew');
   const passFormName = document.getElementById('passwordFormName');
   const passFormEmail = document.getElementById('passwordFormEmail');
-  function openPassword(userId){ currentUserId = userId; const rd = getRowData(userId); if(passFormName) passFormName.value = rd.name; if(passFormEmail) passFormEmail.value = rd.email; passModal.classList.remove('hidden'); passOverlay.classList.remove('hidden'); setTimeout(()=>passNew.focus(),0); }
-  function closePassword(){ passModal.classList.add('hidden'); passOverlay.classList.add('hidden'); }
-  document.querySelectorAll('.btnOpenPasswordModal').forEach(btn=>btn.addEventListener('click', ()=>openPassword(btn.getAttribute('data-user'))));
+  function openPassword(userId){ currentUserId = userId; const rd = getRowData(userId); if(passFormName) passFormName.value = rd.name; if(passFormEmail) passFormEmail.value = rd.email; closeAllModals(); showModal(passModal, passOverlay, ()=>passNew && passNew.focus()); }
+  function closePassword(){ hideModal(passModal, passOverlay); }
+  
   passOverlay && passOverlay.addEventListener('click', closePassword);
   const btnCancelPassword = document.getElementById('btnCancelPassword');
   btnCancelPassword && btnCancelPassword.addEventListener('click', closePassword);
@@ -263,11 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const deleteModal = document.getElementById('modalDelete');
   const btnCancelDelete = document.getElementById('btnCancelDelete');
   const btnConfirmDelete = document.getElementById('btnConfirmDelete');
-  function openDelete(userId){ currentUserId = userId; deleteModal.classList.remove('hidden'); deleteOverlay.classList.remove('hidden'); }
-  function closeDelete(){ deleteModal.classList.add('hidden'); deleteOverlay.classList.add('hidden'); }
-  document.querySelectorAll('.btnOpenDeleteModal').forEach(btn=>btn.addEventListener('click', ()=>openDelete(btn.getAttribute('data-user'))));
+  const deleteForm = document.getElementById('deleteForm');
+  function openDelete(userId){ currentUserId = userId; closeAllModals(); showModal(deleteModal, deleteOverlay); }
+  function closeDelete(){ hideModal(deleteModal, deleteOverlay); }
+  
   deleteOverlay && deleteOverlay.addEventListener('click', closeDelete);
   btnCancelDelete && btnCancelDelete.addEventListener('click', closeDelete);
+  btnConfirmDelete && btnConfirmDelete.addEventListener('click', ()=>{ if(!currentUserId) return; deleteForm.setAttribute('action', `{{ url('/configuracoes/usuarios') }}/${currentUserId}`); deleteForm.submit(); });
   // Acessibilidade: fechar modais com ESC e trap de foco
   function trapFocus(modal){
     const focusable = modal.querySelectorAll('a[href], button, textarea, input, select');
@@ -275,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const last = focusable[focusable.length - 1];
     modal.addEventListener('keydown', (e)=>{
       if(e.key === 'Escape'){
-        if(modal === modalCreate) closeCreate(); else if(modal === roleModal) closeRole(); else if(modal === permModal) closePerm(); else if(modal === editModal) closeEdit(); else if(modal === passModal) closePassword(); else if(modal === deleteModal) closeDelete();
+        if(modal === modalCreate) closeCreate(); else if(modal === roleModal) closeRole(); else if(modal === editModal) closeEdit(); else if(modal === passModal) closePassword(); else if(modal === deleteModal) closeDelete();
       }
       if(e.key === 'Tab'){
         if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
@@ -284,16 +265,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   modalCreate && trapFocus(modalCreate);
-  permModal && trapFocus(permModal);
   roleModal && trapFocus(roleModal);
   editModal && trapFocus(editModal);
   passModal && trapFocus(passModal);
   deleteModal && trapFocus(deleteModal);
+  function closeAllModals(){
+    ['#modalCreate','#modalRole','#modalEdit','#modalPassword','#modalDelete'].forEach(id=>{ const m = document.querySelector(id); if(m) m.classList.add('hidden'); });
+    ['#overlayCreate','#overlayRole','#overlayEdit','#overlayPassword','#overlayDelete'].forEach(id=>{ const o = document.querySelector(id); if(o) o.classList.add('hidden'); });
+  }
+
+  function getModalBox(modal){
+    if(!modal) return null;
+    const box = modal.querySelector(':scope > div');
+    return box || modal;
+  }
+  function showModal(modal, overlay, onShown){
+    if(!modal || !overlay){ console.error('Modal ou overlay não encontrado'); return; }
+    overlay.classList.remove('hidden');
+    modal.classList.remove('hidden');
+    const box = getModalBox(modal);
+    overlay.classList.add('transition-opacity','duration-200','opacity-0');
+    box.classList.add('transition','duration-200','opacity-0','scale-95');
+    requestAnimationFrame(()=>{
+      overlay.classList.remove('opacity-0');
+      overlay.classList.add('opacity-100');
+      box.classList.remove('opacity-0','scale-95');
+      box.classList.add('opacity-100','scale-100');
+      if(typeof onShown === 'function') onShown();
+    });
+  }
+  function hideModal(modal, overlay){
+    if(!modal || !overlay){ console.error('Modal ou overlay não encontrado para fechar'); return; }
+    const box = getModalBox(modal);
+    overlay.classList.remove('opacity-100');
+    overlay.classList.add('opacity-0');
+    box.classList.remove('opacity-100','scale-100');
+    box.classList.add('opacity-0','scale-95');
+    setTimeout(()=>{ modal.classList.add('hidden'); overlay.classList.add('hidden'); }, 200);
+  }
 });
 </script>
-<div id="overlayCreate" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" aria-hidden="true"></div>
+<div id="overlayCreate" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-200 opacity-0" aria-hidden="true"></div>
 <div id="modalCreate" role="dialog" aria-modal="true" aria-labelledby="titleCreate" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-xl">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-xl transform transition-all duration-200 opacity-0 scale-95">
     <div class="px-6 py-4 border-b"><h3 id="titleCreate" class="text-lg font-semibold">Criar Usuário</h3></div>
     <form id="formCreate" method="POST" action="{{ route('usuarios.store') }}" class="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
       @csrf
@@ -331,9 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 
-<div id="overlayRole" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" aria-hidden="true"></div>
+<div id="overlayRole" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-200 opacity-0" aria-hidden="true"></div>
 <div id="modalRole" role="dialog" aria-modal="true" aria-labelledby="titleRole" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-200 opacity-0 scale-95">
     <div class="px-6 py-4 border-b flex items-center justify-between">
         <h3 id="titleRole" class="text-lg font-semibold">Alterar Papel</h3>
         <button id="btnCancelRole" class="text-sm text-gray-600 hover:text-gray-800">Fechar</button>
@@ -354,33 +368,9 @@ document.addEventListener('DOMContentLoaded', () => {
  </div>
 </div>
 
-<div id="overlayPerm" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" aria-hidden="true"></div>
-<div id="modalPerm" role="dialog" aria-modal="true" aria-labelledby="titlePerm" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
-    <div class="px-6 py-4 border-b flex items-center justify-between">
-        <h3 id="titlePerm" class="text-lg font-semibold">Alterar Permissão</h3>
-        <button id="btnCancelPerm" class="text-sm text-gray-600 hover:text-gray-800">Fechar</button>
-    </div>
-    <div class="px-6 py-4">
-        <input id="permSearch" class="form-input w-full" placeholder="Buscar permissão pelo nome">
-        <div id="permList" class="mt-4 space-y-2" role="listbox" aria-label="Lista de permissões"></div>
-    </div>
-    <div class="px-6 py-4 border-t flex justify-end gap-2">
-        <form id="permForm" method="POST">
-            @csrf
-            @method('PUT')
-            <input type="hidden" id="permFormName" name="name">
-            <input type="hidden" id="permFormEmail" name="email">
-            <button type="button" id="btnConfirmPerm" class="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Confirmar</button>
-        </form>
-        <button type="button" id="btnCancelPermFooter" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancelar</button>
-    </div>
-  </div>
- </div>
-
-<div id="overlayEdit" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" aria-hidden="true"></div>
+<div id="overlayEdit" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-200 opacity-0" aria-hidden="true"></div>
 <div id="modalEdit" role="dialog" aria-modal="true" aria-labelledby="titleEdit" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-xl">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-xl transform transition-all duration-200 opacity-0 scale-95">
     <div class="px-6 py-4 border-b flex items-center justify-between">
         <h3 id="titleEdit" class="text-lg font-semibold">Editar Usuário</h3>
         <button id="btnCancelEdit" class="text-sm text-gray-600 hover:text-gray-800">Fechar</button>
@@ -403,9 +393,9 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
  </div>
 
-<div id="overlayPassword" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" aria-hidden="true"></div>
+<div id="overlayPassword" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-200 opacity-0" aria-hidden="true"></div>
 <div id="modalPassword" role="dialog" aria-modal="true" aria-labelledby="titlePassword" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-xl">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-xl transform transition-all duration-200 opacity-0 scale-95">
     <div class="px-6 py-4 border-b flex items-center justify-between">
         <h3 id="titlePassword" class="text-lg font-semibold">Alterar Senha</h3>
         <button id="btnCancelPassword" class="text-sm text-gray-600 hover:text-gray-800">Fechar</button>
@@ -430,9 +420,9 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
  </div>
 
-<div id="overlayDelete" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" aria-hidden="true"></div>
+<div id="overlayDelete" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-200 opacity-0" aria-hidden="true"></div>
 <div id="modalDelete" role="dialog" aria-modal="true" aria-labelledby="titleDelete" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all duration-200 opacity-0 scale-95">
     <div class="px-6 py-4 border-b">
         <h3 id="titleDelete" class="text-lg font-semibold">Excluir Usuário</h3>
     </div>
@@ -440,8 +430,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <p class="text-sm text-gray-700">Confirma a exclusão deste usuário?</p>
     </div>
     <div class="px-6 py-4 border-t flex justify-end gap-2">
+        <form id="deleteForm" method="POST">
+            @csrf
+            @method('DELETE')
+            <button type="button" id="btnConfirmDelete" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Excluir</button>
+        </form>
         <button type="button" id="btnCancelDelete" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancelar</button>
-        <button type="button" id="btnConfirmDelete" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Excluir</button>
     </div>
   </div>
  </div>

@@ -71,11 +71,7 @@ Route::middleware(['auth'])->group(function () {
     // ... Aqui você pode adicionar outras rotas protegidas (Medicamentos, Fornecedores, etc.) ...
 
     // MÓDULO: FORNECEDORES
-    // Rota para listar fornecedores
     Route::get('/fornecedores', [FornecedorController::class, 'index'])->name('fornecedores.index');
-    
-    // ⭐️ CORREÇÃO: Rota para salvar o novo fornecedor ⭐️
-    Route::post('/fornecedores', [FornecedorController::class, 'store'])->name('fornecedores.store');
 
     // MÓDULO: CONFIGURAÇÕES
     Route::get('/configuracoes', [SettingsController::class, 'index'])->name('configuracoes.index');
@@ -93,6 +89,8 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('perm:manage_users')->name('usuarios.store');
     Route::put('/configuracoes/usuarios/{id}', [UserAdminController::class, 'update'])
         ->middleware('perm:manage_users')->name('usuarios.update');
+    Route::delete('/configuracoes/usuarios/{id}', [UserAdminController::class, 'destroy'])
+        ->middleware('perm:manage_users')->name('usuarios.destroy');
 
     // Administração de Permissões
     Route::get('/configuracoes/permissoes', [PermissionAdminController::class, 'index'])
