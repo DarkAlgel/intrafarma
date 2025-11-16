@@ -227,30 +227,47 @@
                         <i class="fas fa-home mr-3"></i>
                         Dashboard
                     </a>
-                    <a href="#" class="nav-link">
+                    @php $uid = Auth::id(); @endphp
+                    @if($uid && \App\Services\PermissionService::userHas($uid,'paciente_ver_medicamentos'))
+                    <a href="{{ route('paciente.medicamentos') }}" class="nav-link {{ request()->routeIs('paciente.medicamentos') ? 'active' : '' }}">
                         <i class="fas fa-pills mr-3"></i>
                         Medicamentos
                     </a>
+                    @endif
+                    @if($uid && \App\Services\PermissionService::userHas($uid,'paciente_ver_historico'))
+                    <a href="{{ route('paciente.historico') }}" class="nav-link {{ request()->routeIs('paciente.historico') ? 'active' : '' }}">
+                        <i class="fas fa-notes-medical mr-3"></i>
+                        Meu Histórico
+                    </a>
+                    @endif
+                    @if($uid && \App\Services\PermissionService::userHas($uid,'ver_estoque'))
                     <a href="{{ route('estoque.index') }}" class="nav-link {{ request()->routeIs('estoque.*') ? 'active' : '' }}">
                         <i class="fas fa-boxes mr-3"></i>
                         Estoque
                     </a>
+                    @endif
+                    @if($uid && \App\Services\PermissionService::userHas($uid,'gerenciar_usuarios'))
                     <a href="{{ route('pacientes.index') }}" class="nav-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
                         <i class="fas fa-users mr-3"></i>
                         Pacientes
                     </a>
+                    @endif
+                    @if($uid && \App\Services\PermissionService::userHas($uid,'ver_dispensacoes'))
                     <a href="{{ route('dispensacoes.create') }}" class="nav-link {{ request()->routeIs('dispensacoes.*') ? 'active' : '' }}">
                         <i class="fas fa-clipboard-list mr-3"></i>
                         Dispensações
                     </a>
+                    @endif
                     <a href="{{ route('fornecedores.index') }}" class="nav-link {{ request()->routeIs('fornecedores.*') ? 'active' : '' }}">
                         <i class="fas fa-truck mr-3"></i>
                         Fornecedores
                     </a>
-                    <a href="{{ route('configuracoes.index') }}" class="nav-link {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}">
+                    @if($uid && (\App\Services\PermissionService::userHas($uid,'ver_minha_conta') || \App\Services\PermissionService::userHas($uid,'alterar_senha')))
+                    <a href="{{ route('paciente.configuracoes') }}" class="nav-link {{ request()->routeIs('paciente.configuracoes') ? 'active' : '' }}">
                         <i class="fas fa-cog mr-3"></i>
                         Configurações
                     </a>
+                    @endif
                 </nav>
             </div>
             

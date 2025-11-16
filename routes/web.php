@@ -16,6 +16,7 @@ use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\PermissionAdminController;
 use App\Http\Controllers\DispensacaoController; 
 use App\Http\Controllers\DashboardController; // ⭐️ NOVO: Importando DashboardController
+use App\Http\Controllers\PacientePortalController;
 use App\Models\Usuario;
 
 
@@ -50,7 +51,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('pacientes', PacienteController::class);
     
     // MÓDULO: ESTOQUE (Visualização da Lista)
-    Route::get('/estoque', [EstoqueController::class, 'index'])->name('estoque.index');
+    Route::get('/estoque', [EstoqueController::class, 'index'])->middleware('perm:ver_estoque')->name('estoque.index');
 
     // Rota para Detalhes de Entradas por Lote
     Route::get('/estoque/{loteId}/entradas', [EntradaController::class, 'showEntradas'])
@@ -61,7 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/estoque/entrada', [EntradaController::class, 'store'])->name('entradas.store');
     
     // MÓDULO: DISPENSAÇÃO
-    Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])->name('dispensacoes.create');
+    Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])->middleware('perm:ver_dispensacoes')->name('dispensacoes.create');
     Route::post('/dispensacao', [DispensacaoController::class, 'store'])->name('dispensacoes.store');
     
     // MÓDULO: FORNECEDORES
@@ -76,6 +77,17 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('perm:ver_minha_conta')->name('configuracoes.account.update');
     Route::post('/configuracoes/senha', [SettingsController::class, 'updatePassword'])
         ->middleware('perm:alterar_senha')->name('configuracoes.password.update');
+
+    // ÁREA DO PACIENTE
+    Route::get('/me/medicamentos', [PacientePortalController::class, 'medicamentos'])
+        ->middleware('perm:paciente_ver_medicamentos')
+        ->name('paciente.medicamentos');
+    Route::get('/me/historico', [PacientePortalController::class, 'historico'])
+        ->middleware('perm:paciente_ver_historico')
+        ->name('paciente.historico');
+    Route::get('/me/configuracoes', [PacientePortalController::class, 'configuracoes'])
+        ->middleware('perm:ver_minha_conta')
+        ->name('paciente.configuracoes');
 
     // Administração de Usuários (proteção por permissão)
     Route::get('/configuracoes/usuarios', [UserAdminController::class, 'index'])

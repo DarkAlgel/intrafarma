@@ -30,6 +30,8 @@ class UsuarioPermisssaoSeeder extends Seeder
             ['codigo' => 'alterar_senha', 'nome' => 'Alterar Senha'],
             ['codigo' => 'ver_estoque', 'nome' => 'Ver Estoque'],
             ['codigo' => 'ver_dispensacoes', 'nome' => 'Ver Dispensações'],
+            ['codigo' => 'paciente_ver_medicamentos', 'nome' => 'Paciente: Ver Medicamentos'],
+            ['codigo' => 'paciente_ver_historico', 'nome' => 'Paciente: Ver Histórico'],
         ];
         foreach ($permissoes as $p) {
             DB::table('permissoes')->updateOrInsert(['codigo' => $p['codigo']], ['nome' => $p['nome']]);
@@ -52,7 +54,7 @@ class UsuarioPermisssaoSeeder extends Seeder
             }
         }
 
-        foreach (['ver_minha_conta', 'alterar_senha'] as $codigo) {
+        foreach (['ver_minha_conta', 'alterar_senha', 'paciente_ver_medicamentos', 'paciente_ver_historico'] as $codigo) {
             $pid = $permsMap[$codigo] ?? null;
             if ($pid) {
                 $ex = DB::table('papeis_permissoes')->where('papel_id', $papeisMap['Pacientes'])->where('permissao_id', $pid)->exists();
@@ -93,6 +95,19 @@ class UsuarioPermisssaoSeeder extends Seeder
             if ($u['email'] === 'operador@intrafarma.com') {
                 $pid = $permsMap['ver_estoque'] ?? null;
                 if ($pid) DB::table('usuarios_permissoes')->updateOrInsert(['usuario_id' => $uid, 'permissao_id' => $pid]);
+            }
+
+            if ($u['email'] === 'paciente@intrafarma.com') {
+                $cpf = '11122233396';
+                $pacienteId = DB::table('pacientes')->where('cpf', $cpf)->value('id');
+                if (!$pacienteId) {
+                    DB::table('pacientes')->insert([
+                        'nome' => $u['nome'],
+                        'cpf' => $cpf,
+                        'telefone' => '(11) 95555-0000',
+                        'cidade' => 'São Paulo',
+                    ]);
+                }
             }
         }
     }
