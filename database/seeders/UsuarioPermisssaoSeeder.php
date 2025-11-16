@@ -5,12 +5,13 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Hash;
 
-class RolesPermissionsSeeder extends Seeder
+class UsuarioPermisssaoSeeder extends Seeder
 {
     public function run(): void
     {
-        if (!Schema::hasTable('papeis') || !Schema::hasTable('permissoes')) {
+        if (!Schema::hasTable('usuarios') || !Schema::hasTable('papeis') || !Schema::hasTable('permissoes')) {
             return;
         }
 
@@ -59,11 +60,39 @@ class RolesPermissionsSeeder extends Seeder
             }
         }
 
-        if (Schema::hasTable('usuarios') && Schema::hasTable('usuarios_papeis')) {
-            $adminUsuario = DB::table('usuarios')->where('email', 'admin@intrafarma.com')->first();
-            if ($adminUsuario) {
-                $ex = DB::table('usuarios_papeis')->where('usuario_id', $adminUsuario->id)->where('papel_id', $papeisMap['Administradores'])->exists();
-                if (!$ex) DB::table('usuarios_papeis')->insert(['usuario_id' => $adminUsuario->id, 'papel_id' => $papeisMap['Administradores']]);
+        $usuariosSeed = [
+            ['nome' => 'Administrador', 'email' => 'admin@intrafarma.com', 'login' => 'admin', 'senha' => 'admin123', 'papel' => 'Administradores'],
+            ['nome' => 'Funcionário Demo', 'email' => 'staff@intrafarma.com', 'login' => 'staff', 'senha' => 'staff123', 'papel' => 'Funcionários'],
+            ['nome' => 'Paciente Demo', 'email' => 'paciente@intrafarma.com', 'login' => 'paciente', 'senha' => 'paciente123', 'papel' => 'Pacientes'],
+            ['nome' => 'Operador Estoque', 'email' => 'operador@intrafarma.com', 'login' => 'operador', 'senha' => 'operador123', 'papel' => 'Funcionários'],
+        ];
+
+        foreach ($usuariosSeed as $u) {
+            $usuario = DB::table('usuarios')->where('email', $u['email'])->first();
+            if (!$usuario) {
+                $uid = DB::table('usuarios')->insertGetId([
+                    'nome' => $u['nome'],
+                    'celular' => null,
+                    'email' => $u['email'],
+                    'login' => $u['login'],
+                    'senha_hash' => Hash::make($u['senha']),
+                    'datacadastro' => DB::raw('now()'),
+                    'ultimoacesso' => null,
+                    'ativo' => true,
+                ]);
+            } else {
+                $uid = $usuario->id;
+            }
+
+            $papelId = $papeisMap[$u['papel']] ?? null;
+            if ($papelId) {
+                $ex = DB::table('usuarios_papeis')->where('usuario_id', $uid)->where('papel_id', $papelId)->exists();
+                if (!$ex) DB::table('usuarios_papeis')->insert(['usuario_id' => $uid, 'papel_id' => $papelId]);
+            }
+
+            if ($u['email'] === 'operador@intrafarma.com') {
+                $pid = $permsMap['ver_estoque'] ?? null;
+                if ($pid) DB::table('usuarios_permissoes')->updateOrInsert(['usuario_id' => $uid, 'permissao_id' => $pid]);
             }
         }
     }
