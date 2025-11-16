@@ -8,6 +8,8 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <script src="{{ asset('js/app.js') }}" defer></script>
+    {{-- ⭐️ ADIÇÃO NECESSÁRIA: ALPINE.JS (Para modais e submenus) ⭐️ --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> 
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -19,11 +21,11 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     
     <style>
-        /* ... Seus estilos CSS permanecem aqui ... */
+        /* ... SEUS ESTILOS CSS PERMANECEM AQUI ... */
         .sidebar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            position: fixed; /* Essencial para o alinhamento */
+            position: fixed; 
             left: 0;
             top: 0;
             z-index: 1000;
@@ -48,12 +50,13 @@
         }
         
         .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: rgba(255, 255, 255, 0.15); /* Tom claro do hover */
             transform: translateX(4px);
         }
         
+        /* ⭐️ CORREÇÃO: Torna o ativo igual ao hover para consistência visual ⭐️ */
         .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.15); 
             border-left: 4px solid #fff;
         }
         
@@ -207,15 +210,21 @@
         }
     </style>
 </head>
+{{-- Define se a sidebar deve estar visível com base na autenticação e rotas públicas --}}
+@php 
+    $hideForRoutes = ['login', 'register', 'password.*', 'verification.*'];
+    $showSidebar = Auth::check() && !request()->routeIs($hideForRoutes); 
+@endphp
+
 <body class="bg-gray-50 font-sans">
     
     <div id="app">
         
-        {{-- ⭐️ INÍCIO DA ESTRUTURA CORRETA DO LAYOUT MESTRE ⭐️ --}}
+        {{-- ⭐️ START: ESTRUTURA LAYOUT MESTRE ⭐️ --}}
         <div class="flex min-h-screen bg-gray-100"> 
             
             {{-- SIDEBAR: Renderiza o menu fixo --}}
-            <div class="sidebar w-64 text-white {{ Auth::check() ? '' : 'sidebar-hidden' }}" aria-hidden="{{ Auth::check() ? 'false' : 'true' }}">
+            <div class="sidebar w-64 text-white {{ $showSidebar ? '' : 'sidebar-hidden' }}" aria-hidden="{{ $showSidebar ? 'false' : 'true' }}">
                 <div class="p-4 border-b border-purple-700">
                     <h1 class="text-xl font-bold flex items-center">
                         <i class="fas fa-pills mr-2"></i>
@@ -227,64 +236,95 @@
                         <i class="fas fa-home mr-3"></i>
                         Dashboard
                     </a>
+                    
+                    {{-- Lógica de permissões para navegação --}}
                     @php $uid = Auth::id(); @endphp
+                    
                     @if($uid && \App\Services\PermissionService::userHas($uid,'paciente_ver_medicamentos'))
                     <a href="{{ route('paciente.medicamentos') }}" class="nav-link {{ request()->routeIs('paciente.medicamentos') ? 'active' : '' }}">
                         <i class="fas fa-pills mr-3"></i>
                         Medicamentos
                     </a>
                     @endif
-                    @if($uid && \App\Services\PermissionService::userHas($uid,'paciente_ver_historico'))
-                    <a href="{{ route('paciente.historico') }}" class="nav-link {{ request()->routeIs('paciente.historico') ? 'active' : '' }}">
-                        <i class="fas fa-notes-medical mr-3"></i>
-                        Meu Histórico
-                    </a>
-                    @endif
+                    
                     @if($uid && \App\Services\PermissionService::userHas($uid,'ver_estoque'))
                     <a href="{{ route('estoque.index') }}" class="nav-link {{ request()->routeIs('estoque.*') ? 'active' : '' }}">
                         <i class="fas fa-boxes mr-3"></i>
                         Estoque
                     </a>
                     @endif
+                    
                     @if($uid && \App\Services\PermissionService::userHas($uid,'gerenciar_usuarios'))
                     <a href="{{ route('pacientes.index') }}" class="nav-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
                         <i class="fas fa-users mr-3"></i>
                         Pacientes
                     </a>
                     @endif
+                    
                     @if($uid && \App\Services\PermissionService::userHas($uid,'ver_dispensacoes'))
-                    <a href="{{ route('dispensacoes.create') }}" class="nav-link {{ request()->routeIs('dispensacoes.*') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-list mr-3"></i>
-                        Dispensações
-                    </a>
+                        {{-- ⭐️ SUBMENU DISPENSAÇÕES (Com Histórico) ⭐️ --}}
+                        <div x-data="{ open: {{ request()->routeIs(['dispensacoes.create', 'dispensacoes.index']) ? 'true' : 'false' }} }" class="relative">
+                            
+                            <button @click="open = !open" 
+                                    class="flex items-center justify-between w-full nav-link {{ request()->routeIs(['dispensacoes.create', 'dispensacoes.index']) ? 'active' : '' }}" 
+                                    style="margin: 0; padding: 12px 20px;">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clipboard-list mr-3 text-xl"></i>
+                                    <span class="font-semibold">Dispensações</span>
+                                </div>
+                                <i class="fas" :class="{'fa-chevron-up': open, 'fa-chevron-down': !open}"></i>
+                            </button>
+                            
+                            <div x-show="open" x-collapse>
+                                
+                                <a href="{{ route('dispensacoes.create') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('dispensacoes.create') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-plus mr-2 text-xs"></i> Nova Dispensação
+                                </a>
+                                
+                                <a href="{{ route('dispensacoes.index') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('dispensacoes.index') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-history mr-2 text-xs"></i> Histórico
+                                </a>
+                            </div>
+                        </div>
                     @endif
+                    {{-- FIM: SUBMENU DISPENSAÇÕES --}}
+                    
                     <a href="{{ route('fornecedores.index') }}" class="nav-link {{ request()->routeIs('fornecedores.*') ? 'active' : '' }}">
                         <i class="fas fa-truck mr-3"></i>
                         Fornecedores
                     </a>
+                    
                     @if($uid && (\App\Services\PermissionService::userHas($uid,'ver_minha_conta') || \App\Services\PermissionService::userHas($uid,'alterar_senha')))
-                    <a href="{{ route('paciente.configuracoes') }}" class="nav-link {{ request()->routeIs('paciente.configuracoes') ? 'active' : '' }}">
+                    <a href="{{ route('configuracoes.index') }}" class="nav-link {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}">
                         <i class="fas fa-cog mr-3"></i>
                         Configurações
+                    </a>
+                    @endif
+                    
+                    @if($uid && \App\Services\PermissionService::userHas($uid,'paciente_ver_historico'))
+                    <a href="{{ route('paciente.historico') }}" class="nav-link {{ request()->routeIs('paciente.historico') ? 'active' : '' }}">
+                        <i class="fas fa-notes-medical mr-3"></i>
+                        Meu Histórico
                     </a>
                     @endif
                 </nav>
             </div>
             
             {{-- CONTEÚDO PRINCIPAL: Aplica a margem de deslocamento --}}
-            <div class="flex-1 flex flex-col {{ Auth::check() ? 'md:ml-64' : '' }}">
+            <div class="flex-1 flex flex-col {{ $showSidebar ? 'md:ml-64' : 'w-full' }}">
                  @yield('content') {{-- Aqui o conteúdo da sua página é injetado --}}
             </div>
             
         </div>
-        {{-- ⭐️ FIM DA ESTRUTURA CORRETA DO LAYOUT MESTRE ⭐️ --}}
+        {{-- ⭐️ FIM DA ESTRUTURA LAYOUT MESTRE ⭐️ --}}
         
     </div>
 
-    {{-- 💡 ADIÇÃO NECESSÁRIA: ALPINE.JS E REORGANIZAÇÃO DO TOAST 💡 --}}
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> 
-
-    {{-- O resto do seu código Toast e scripts deve ficar aqui --}}
+    {{-- 💡 SCRIPTS E TOASTS 💡 --}}
     @if(session()->has('success') || session()->has('error'))
         @php
             $type = session()->has('success') ? 'success' : 'error';
