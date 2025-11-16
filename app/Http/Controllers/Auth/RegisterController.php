@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -25,20 +25,20 @@ class RegisterController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:usuarios,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
-
-        $user = User::create([
-            'name' => $request->name,
+        $usuario = new Usuario([
+            'nome' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'login' => strtolower(str_replace(' ', '.', $request->name)),
+            'senha_hash' => Hash::make($request->password),
+            'ativo' => true,
         ]);
+        $usuario->save();
 
-        Auth::login($user);
+        Auth::login($usuario);
 
-        $user->sendEmailVerificationNotification();
-
-        return redirect()->route('verification.notice');
+        return redirect()->route('dashboard');
     }
 }

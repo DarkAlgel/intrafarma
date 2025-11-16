@@ -7,7 +7,7 @@ Este guia destina-se à configuração e execução do projeto em um ambiente de
 ## Stack do Ambiente
 
 * PHP: 8.2+ (incluído no projeto como versão portátil)
-* Banco de Dados: SQLite (arquivo local)
+* Banco de Dados: PostgreSQL (pgsql)
 * Backend: Laravel 11 (PHP)
 * Frontend: Tailwind CSS (compilado com Vite)
 * Gerenciadores de Pacotes: Composer (PHP) e NPM/PNPM (Node.js)
@@ -64,28 +64,40 @@ Copie o arquivo de configuração de exemplo:
 copy .env.example .env
 ```
 
-#### 3.2. Configurar Banco de Dados SQLite
+#### 3.2. Configurar Banco de Dados PostgreSQL (pgsql)
 
-O projeto está configurado para usar SQLite. O arquivo `.env` já está configurado corretamente, mas você pode verificar:
+No arquivo `.env`, configure a conexão com seu Postgres local:
 
 ```env
-DB_CONNECTION=sqlite
-DB_DATABASE=database/database.sqlite
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=farmacia_db
+DB_USERNAME=postgres
+DB_PASSWORD=123
 ```
 
-#### 3.3. Gerar Chave da Aplicação
+#### 3.3. Criar Banco e Importar Schema (pgsql)
+
+```bash
+psql -h 127.0.0.1 -U postgres -d farmacia_db -f database/scripts/schema_farmacia.sql
+```
+
+#### 3.4. Gerar Chave da Aplicação
 
 ```bash
 php artisan key:generate
 ```
 
-#### 3.4. Executar Migrações
+#### 3.5. Executar Migrações (opcional)
 
-Crie as tabelas do banco de dados:
+Se preferir usar migrações do Laravel:
 
 ```bash
 php artisan migrate --force
 ```
+
+Caso já tenha importado o schema `.sql`, as migrações podem não ser necessárias.
 
 ---
 
@@ -323,12 +335,12 @@ notepad storage/logs/laravel.log
 1. Verifique se está usando o PHP correto: `php -v` (deve mostrar 8.2.29)
 2. Verifique se o `php.ini` existe em `tools/php82/bin/php.ini`
 
-### Problema: "could not find driver" (SQLite)
+### Problema: "could not find driver" (pgsql)
 
 **Solução**: 
 1. Execute: `php artisan config:clear`
-2. Verifique se o `.env` tem: `DB_CONNECTION=sqlite`
-3. Verifique se existe o arquivo `database/database.sqlite`
+2. Habilite as extensões `pgsql` e `pdo_pgsql` no `php.ini`
+3. Verifique se o `.env` tem: `DB_CONNECTION=pgsql` e credenciais corretas
 
 ### Problema: Servidor não inicia na porta 8000-8010
 
@@ -425,8 +437,8 @@ php -S 127.0.0.1:9100 -t public
 - Sessões seguras
 
 ### ✅ Banco de Dados
-- SQLite para desenvolvimento simples
-- Migrações completas de usuários
+- PostgreSQL
+- Schema SQL completo (opcional) e migrações
 - Sistema de cache integrado
 - Jobs para processamento assíncrono
 
@@ -497,7 +509,7 @@ intrafarma/
 │   ├── migrations/         # Migrações do banco
 │   ├── seeders/           # Seeders (AdminUserSeeder)
 │   ├── scripts/           # Scripts SQL adicionais
-│   └── database.sqlite    # Banco SQLite
+│   └── schema_farmacia.sql    # Schema PostgreSQL
 ├── public/                  # Arquivos públicos
 │   ├── index.php          # Entrada da aplicação
 │   └── favicon.ico        # Ícone do site

@@ -3,30 +3,29 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Role;
-use App\Models\Permission;
-use App\Models\RolePermission;
-use App\Models\PermissionChangeLog;
+use Illuminate\Support\Facades\DB;
 
 class PermissionAdminController extends Controller
 {
     public function index(Request $request)
     {
-        $sort = in_array($request->query('sort'), ['name','created_at']) ? $request->query('sort') : 'name';
+        $sortParam = $request->query('sort');
+        $sort = in_array($sortParam, ['name','nome']) ? ($sortParam === 'name' ? 'nome' : 'nome') : 'nome';
         $dir = in_array($request->query('dir'), ['asc','desc']) ? $request->query('dir') : 'asc';
-        $roles = Role::orderBy($sort, $dir)->paginate(10);
-        $permissions = Permission::orderBy('name')->get();
-        $assigned = RolePermission::get();
-        $defaultCodes = ['admin','staff','patient'];
+        $roles = DB::table('papeis')->select('id', DB::raw('nome as name'), DB::raw('NULL::text as code'))
+            ->orderBy($sort, $dir)->paginate(10);
+        $permissions = DB::table('permissoes')->select('id', DB::raw('nome as name'), 'codigo')->orderBy('nome')->get();
+        $assigned = DB::table('papeis_permissoes')->select(DB::raw('papel_id as role_id'), DB::raw('permissao_id as permission_id'))->get();
+        $defaultCodes = [];
         $permissionDescriptions = [];
         foreach ($permissions as $p) {
-            $permissionDescriptions[$p->id] = match($p->code) {
-                'manage_users' => 'Gerencia cadastro, edição e exclusão de usuários.',
-                'manage_permissions' => 'Gerencia concessão e revogação de permissões.',
-                'view_account' => 'Acessa e edita dados da própria conta.',
-                'change_password' => 'Altera a própria senha com segurança.',
-                'view_stock' => 'Visualiza informações de estoque.',
-                'view_dispensation' => 'Visualiza registro de dispensações.',
+            $permissionDescriptions[$p->id] = match($p->codigo) {
+                'gerenciar_usuarios' => 'Gerencia cadastro, edição e exclusão de usuários.',
+                'gerenciar_permissoes' => 'Gerencia concessão e revogação de permissões.',
+                'ver_minha_conta' => 'Acessa e edita dados da própria conta.',
+                'alterar_senha' => 'Altera a própria senha com segurança.',
+                'ver_estoque' => 'Visualiza informações de estoque.',
+                'ver_dispensacoes' => 'Visualiza registro de dispensações.',
                 default => 'Acesso relacionado à funcionalidade do sistema.'
             };
         }
@@ -39,13 +38,7 @@ class PermissionAdminController extends Controller
             'role_id' => ['required', 'integer'],
             'permission_id' => ['required', 'integer'],
         ]);
-        RolePermission::firstOrCreate($data);
-        PermissionChangeLog::create([
-            'user_id' => null,
-            'actor_id' => $request->user()->id,
-            'action' => 'role_add_permission',
-            'details' => json_encode($data),
-        ]);
+        DB::table('papeis_permissoes')->updateOrInsert(['papel_id' => $data['role_id'], 'permissao_id' => $data['permission_id']]);
         return redirect()->route('permissoes.index');
     }
 
@@ -55,13 +48,7 @@ class PermissionAdminController extends Controller
             'role_id' => ['required', 'integer'],
             'permission_id' => ['required', 'integer'],
         ]);
-        RolePermission::where($data)->delete();
-        PermissionChangeLog::create([
-            'user_id' => null,
-            'actor_id' => $request->user()->id,
-            'action' => 'role_remove_permission',
-            'details' => json_encode($data),
-        ]);
+        DB::table('papeis_permissoes')->where(['papel_id' => $data['role_id'], 'permissao_id' => $data['permission_id']])->delete();
         return redirect()->route('permissoes.index');
     }
 
@@ -72,67 +59,43 @@ class PermissionAdminController extends Controller
             'permission_ids' => ['array'],
             'permission_ids.*' => ['integer'],
         ]);
-        $role = Role::create(['name' => $data['name'], 'code' => strtolower(str_replace(' ', '_', $data['name']))]);
+        $roleId = DB::table('papeis')->insertGetId(['nome' => $data['name']]);
         foreach (($data['permission_ids'] ?? []) as $pid) {
-            RolePermission::firstOrCreate(['role_id' => $role->id, 'permission_id' => $pid]);
+            DB::table('papeis_permissoes')->updateOrInsert(['papel_id' => $roleId, 'permissao_id' => $pid]);
         }
-        PermissionChangeLog::create([
-            'user_id' => null,
-            'actor_id' => $request->user()->id,
-            'action' => 'create_role',
-            'details' => json_encode(['role_id' => $role->id, 'name' => $role->name, 'permissions' => $data['permission_ids'] ?? []]),
-        ]);
         return redirect()->route('permissoes.index');
     }
 
     public function updateRole(Request $request, int $id)
     {
-        $role = Role::findOrFail($id);
-        if (in_array($role->code, ['admin','staff','patient'])) {
-            abort(403);
-        }
+        $role = DB::table('papeis')->where('id', $id)->first();
         $data = $request->validate([
             'name' => ['required', 'string'],
             'permission_ids' => ['array'],
             'permission_ids.*' => ['integer'],
         ]);
-        $role->update(['name' => $data['name']]);
-        RolePermission::where('role_id', $role->id)->delete();
+        DB::table('papeis')->where('id', $id)->update(['nome' => $data['name']]);
+        DB::table('papeis_permissoes')->where('papel_id', $id)->delete();
         foreach (($data['permission_ids'] ?? []) as $pid) {
-            RolePermission::firstOrCreate(['role_id' => $role->id, 'permission_id' => $pid]);
+            DB::table('papeis_permissoes')->updateOrInsert(['papel_id' => $id, 'permissao_id' => $pid]);
         }
-        PermissionChangeLog::create([
-            'user_id' => null,
-            'actor_id' => $request->user()->id,
-            'action' => 'update_role',
-            'details' => json_encode(['role_id' => $role->id, 'name' => $role->name, 'permissions' => $data['permission_ids'] ?? []]),
-        ]);
         return redirect()->route('permissoes.index');
     }
 
     public function deleteRole(Request $request, int $id)
     {
-        $role = Role::findOrFail($id);
-        if (in_array($role->code, ['admin','staff','patient'])) {
-            abort(403);
-        }
-        RolePermission::where('role_id', $role->id)->delete();
-        $role->delete();
-        PermissionChangeLog::create([
-            'user_id' => null,
-            'actor_id' => $request->user()->id,
-            'action' => 'delete_role',
-            'details' => json_encode(['role_id' => $id]),
-        ]);
+        DB::table('papeis_permissoes')->where('papel_id', $id)->delete();
+        DB::table('papeis')->where('id', $id)->delete();
         return redirect()->route('permissoes.index');
     }
 
     public function exportCsv()
     {
-        $rows = Role::leftJoin('role_permissions', 'roles.id', '=', 'role_permissions.role_id')
-            ->leftJoin('permissions', 'permissions.id', '=', 'role_permissions.permission_id')
-            ->select('roles.name as role', 'permissions.name as permission')
-            ->orderBy('roles.name')->get();
+        $rows = DB::table('papeis')
+            ->leftJoin('papeis_permissoes', 'papeis.id', '=', 'papeis_permissoes.papel_id')
+            ->leftJoin('permissoes', 'permissoes.id', '=', 'papeis_permissoes.permissao_id')
+            ->select('papeis.nome as role', 'permissoes.nome as permission')
+            ->orderBy('papeis.nome')->get();
         $csv = "role,permission\n";
         foreach ($rows as $r) {
             $csv .= sprintf("%s,%s\n", $r->role, $r->permission ?? '');
@@ -142,9 +105,9 @@ class PermissionAdminController extends Controller
 
     public function exportPdf()
     {
-        $roles = Role::orderBy('name')->get();
-        $assigned = RolePermission::get();
-        $permissions = Permission::get();
+        $roles = DB::table('papeis')->select('id', DB::raw('nome as name'))->orderBy('nome')->get();
+        $assigned = DB::table('papeis_permissoes')->select(DB::raw('papel_id as role_id'), DB::raw('permissao_id as permission_id'))->get();
+        $permissions = DB::table('permissoes')->select('id', DB::raw('nome as name'))->get();
         $html = view('permissoes.export', compact('roles','assigned','permissions'))->render();
         return response($html)->header('Content-Type', 'text/html');
     }

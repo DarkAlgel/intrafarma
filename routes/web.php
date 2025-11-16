@@ -16,7 +16,7 @@ use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\PermissionAdminController;
 use App\Http\Controllers\DispensacaoController; 
 use App\Http\Controllers\DashboardController; // ⭐️ NOVO: Importando DashboardController
-use App\Models\User;
+use App\Models\Usuario;
 
 
 Route::get('/', function () {
@@ -73,43 +73,54 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/configuracoes/conta', [SettingsController::class, 'account'])->name('configuracoes.account');
     Route::get('/configuracoes/senha', [SettingsController::class, 'password'])->name('configuracoes.password');
     Route::post('/configuracoes/conta', [SettingsController::class, 'updateAccount'])
-        ->middleware('perm:view_account')->name('configuracoes.account.update');
+        ->middleware('perm:ver_minha_conta')->name('configuracoes.account.update');
     Route::post('/configuracoes/senha', [SettingsController::class, 'updatePassword'])
-        ->middleware('perm:change_password')->name('configuracoes.password.update');
+        ->middleware('perm:alterar_senha')->name('configuracoes.password.update');
 
     // Administração de Usuários (proteção por permissão)
     Route::get('/configuracoes/usuarios', [UserAdminController::class, 'index'])
-        ->middleware('perm:manage_users')->name('usuarios.index');
+        ->middleware('perm:gerenciar_usuarios')->name('usuarios.index');
     Route::post('/configuracoes/usuarios', [UserAdminController::class, 'store'])
-        ->middleware('perm:manage_users')->name('usuarios.store');
+        ->middleware('perm:gerenciar_usuarios')->name('usuarios.store');
     Route::put('/configuracoes/usuarios/{id}', [UserAdminController::class, 'update'])
-        ->middleware('perm:manage_users')->name('usuarios.update');
+        ->middleware('perm:gerenciar_usuarios')->name('usuarios.update');
     Route::delete('/configuracoes/usuarios/{id}', [UserAdminController::class, 'destroy'])
-        ->middleware('perm:manage_users')->name('usuarios.destroy');
+        ->middleware('perm:gerenciar_usuarios')->name('usuarios.destroy');
 
     // Administração de Permissões
     Route::get('/configuracoes/permissoes', [PermissionAdminController::class, 'index'])
-        ->middleware('perm:manage_permissions')->name('permissoes.index');
+        ->middleware('perm:gerenciar_permissoes')->name('permissoes.index');
     Route::post('/configuracoes/permissoes/assign', [PermissionAdminController::class, 'assign'])
-        ->middleware('perm:manage_permissions')->name('permissoes.assign');
+        ->middleware('perm:gerenciar_permissoes')->name('permissoes.assign');
     Route::post('/configuracoes/permissoes/revoke', [PermissionAdminController::class, 'revoke'])
-        ->middleware('perm:manage_permissions')->name('permissoes.revoke');
+        ->middleware('perm:gerenciar_permissoes')->name('permissoes.revoke');
     Route::post('/configuracoes/permissoes/roles', [PermissionAdminController::class, 'createRole'])
-        ->middleware('perm:manage_permissions')->name('permissoes.roles.create');
+        ->middleware('perm:gerenciar_permissoes')->name('permissoes.roles.create');
     Route::put('/configuracoes/permissoes/roles/{id}', [PermissionAdminController::class, 'updateRole'])
-        ->middleware('perm:manage_permissions')->name('permissoes.roles.update');
+        ->middleware('perm:gerenciar_permissoes')->name('permissoes.roles.update');
     Route::delete('/configuracoes/permissoes/roles/{id}', [PermissionAdminController::class, 'deleteRole'])
-        ->middleware('perm:manage_permissions')->name('permissoes.roles.delete');
+        ->middleware('perm:gerenciar_permissoes')->name('permissoes.roles.delete');
     Route::get('/configuracoes/permissoes/export/csv', [PermissionAdminController::class, 'exportCsv'])
-        ->middleware('perm:manage_permissions')->name('permissoes.export.csv');
+        ->middleware('perm:gerenciar_permissoes')->name('permissoes.export.csv');
     Route::get('/configuracoes/permissoes/export/pdf', [PermissionAdminController::class, 'exportPdf'])
-        ->middleware('perm:manage_permissions')->name('permissoes.export.pdf');
+        ->middleware('perm:gerenciar_permissoes')->name('permissoes.export.pdf');
 });
 
 // Auxiliar para testes visuais em ambiente local
 if (app()->environment('local')) {
     Route::get('/_test/login', function () {
-        $user = User::first() ?? User::factory()->create(['email_verified_at' => now()]);
+        $user = Usuario::first();
+        if (!$user) {
+            $id = DB::table('usuarios')->insertGetId([
+                'nome' => 'Dev',
+                'email' => 'dev@example.com',
+                'login' => 'dev',
+                'senha_hash' => 'password',
+                'ativo' => true,
+                'datacadastro' => DB::raw('now()'),
+            ]);
+            $user = Usuario::find($id);
+        }
         auth()->login($user);
         return redirect()->to('/fornecedores');
     });

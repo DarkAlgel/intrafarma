@@ -23,17 +23,7 @@ class VerificationController extends Controller
      */
     public function verify(Request $request)
     {
-        $user = Auth::user();
-
-        if ($user->hasVerifiedEmail()) {
-            return redirect()->route('dashboard');
-        }
-
-        if ($user->markEmailAsVerified()) {
-            event(new Verified($user));
-        }
-
-        return redirect()->route('dashboard')->with('success', 'Email verificado com sucesso!');
+        return redirect()->route('dashboard');
     }
 
     /**
@@ -41,14 +31,6 @@ class VerificationController extends Controller
      */
     public function resend(Request $request)
     {
-        $user = Auth::user();
-
-        if ($user->hasVerifiedEmail()) {
-            return redirect()->route('dashboard');
-        }
-
-        $user->sendEmailVerificationNotification();
-
-        return back()->with('resent', 'Email de verificação reenviado!');
+        return redirect()->route('dashboard');
     }
 }

@@ -3,108 +3,68 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
-use App\Models\Role;
-use App\Models\Permission;
-use App\Models\RolePermission;
-use App\Models\UserRole;
-use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 
 class RolesPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
-        if (!Schema::hasTable('roles')) {
-            Schema::create('roles', function ($table) {
-                $table->id();
-                $table->string('code')->unique();
-                $table->string('name');
-            });
-        }
-        if (!Schema::hasTable('permissions')) {
-            Schema::create('permissions', function ($table) {
-                $table->id();
-                $table->string('code')->unique();
-                $table->string('name');
-            });
-        }
-        if (!Schema::hasTable('role_permissions')) {
-            Schema::create('role_permissions', function ($table) {
-                $table->id();
-                $table->unsignedBigInteger('role_id');
-                $table->unsignedBigInteger('permission_id');
-            });
-        }
-        if (!Schema::hasTable('user_roles')) {
-            Schema::create('user_roles', function ($table) {
-                $table->id();
-                $table->unsignedBigInteger('user_id');
-                $table->unsignedBigInteger('role_id');
-            });
-        }
-        if (!Schema::hasTable('user_permissions')) {
-            Schema::create('user_permissions', function ($table) {
-                $table->id();
-                $table->unsignedBigInteger('user_id');
-                $table->unsignedBigInteger('permission_id');
-            });
-        }
-        if (!Schema::hasTable('permission_change_logs')) {
-            Schema::create('permission_change_logs', function ($table) {
-                $table->id();
-                $table->unsignedBigInteger('user_id')->nullable();
-                $table->unsignedBigInteger('actor_id')->nullable();
-                $table->string('action');
-                $table->text('details')->nullable();
-                $table->timestamps();
-            });
+        if (!Schema::hasTable('papeis') || !Schema::hasTable('permissoes')) {
+            return;
         }
 
-        $roles = [
-            ['code' => 'admin', 'name' => 'Administradores'],
-            ['code' => 'staff', 'name' => 'Funcionários'],
-            ['code' => 'patient', 'name' => 'Pacientes'],
+        $papeis = ['Administradores', 'Funcionários', 'Pacientes'];
+        foreach ($papeis as $nome) {
+            $existe = DB::table('papeis')->where('nome', $nome)->exists();
+            if (!$existe) {
+                DB::table('papeis')->insert(['nome' => $nome]);
+            }
+        }
+
+        $permissoes = [
+            ['codigo' => 'gerenciar_usuarios', 'nome' => 'Gerenciar Usuários'],
+            ['codigo' => 'gerenciar_permissoes', 'nome' => 'Gerenciar Permissões'],
+            ['codigo' => 'ver_minha_conta', 'nome' => 'Ver Minha Conta'],
+            ['codigo' => 'alterar_senha', 'nome' => 'Alterar Senha'],
+            ['codigo' => 'ver_estoque', 'nome' => 'Ver Estoque'],
+            ['codigo' => 'ver_dispensacoes', 'nome' => 'Ver Dispensações'],
         ];
-        foreach ($roles as $r) {
-            Role::firstOrCreate(['code' => $r['code']], ['name' => $r['name']]);
+        foreach ($permissoes as $p) {
+            DB::table('permissoes')->updateOrInsert(['codigo' => $p['codigo']], ['nome' => $p['nome']]);
         }
 
-        $perms = [
-            ['code' => 'manage_users', 'name' => 'Gerenciar Usuários'],
-            ['code' => 'manage_permissions', 'name' => 'Gerenciar Permissões'],
-            ['code' => 'view_account', 'name' => 'Ver Minha Conta'],
-            ['code' => 'change_password', 'name' => 'Alterar Senha'],
-            ['code' => 'view_stock', 'name' => 'Ver Estoque'],
-            ['code' => 'view_dispensation', 'name' => 'Ver Dispensações'],
-        ];
-        foreach ($perms as $p) {
-            Permission::firstOrCreate(['code' => $p['code']], ['name' => $p['name']]);
+        $papeisMap = DB::table('papeis')->pluck('id', 'nome');
+        $permsMap = DB::table('permissoes')->pluck('id', 'codigo');
+
+        $todosPerms = array_values($permsMap->toArray());
+        foreach ($todosPerms as $pid) {
+            $ex = DB::table('papeis_permissoes')->where('papel_id', $papeisMap['Administradores'])->where('permissao_id', $pid)->exists();
+            if (!$ex) DB::table('papeis_permissoes')->insert(['papel_id' => $papeisMap['Administradores'], 'permissao_id' => $pid]);
         }
 
-        $roleIds = Role::pluck('id', 'code');
-        $permIds = Permission::pluck('id', 'code');
-
-        $adminPerms = array_values($permIds->all());
-        foreach ($adminPerms as $pid) {
-            RolePermission::firstOrCreate(['role_id' => $roleIds['admin'], 'permission_id' => $pid]);
+        foreach (['ver_estoque', 'ver_dispensacoes', 'ver_minha_conta', 'alterar_senha'] as $codigo) {
+            $pid = $permsMap[$codigo] ?? null;
+            if ($pid) {
+                $ex = DB::table('papeis_permissoes')->where('papel_id', $papeisMap['Funcionários'])->where('permissao_id', $pid)->exists();
+                if (!$ex) DB::table('papeis_permissoes')->insert(['papel_id' => $papeisMap['Funcionários'], 'permissao_id' => $pid]);
+            }
         }
 
-        foreach (['view_stock', 'view_dispensation', 'view_account', 'change_password'] as $code) {
-            RolePermission::firstOrCreate(['role_id' => $roleIds['staff'], 'permission_id' => $permIds[$code]]);
+        foreach (['ver_minha_conta', 'alterar_senha'] as $codigo) {
+            $pid = $permsMap[$codigo] ?? null;
+            if ($pid) {
+                $ex = DB::table('papeis_permissoes')->where('papel_id', $papeisMap['Pacientes'])->where('permissao_id', $pid)->exists();
+                if (!$ex) DB::table('papeis_permissoes')->insert(['papel_id' => $papeisMap['Pacientes'], 'permissao_id' => $pid]);
+            }
         }
 
-        foreach (['view_account', 'change_password'] as $code) {
-            RolePermission::firstOrCreate(['role_id' => $roleIds['patient'], 'permission_id' => $permIds[$code]]);
-        }
-
-        $admin = User::where('email', 'admin@intrafarma.com')->first();
-        if ($admin) {
-            UserRole::firstOrCreate(['user_id' => $admin->id, 'role_id' => $roleIds['admin']]);
-        }
-        $patient = User::where('email', 'paciente@intrafarma.com')->first();
-        if ($patient) {
-            UserRole::firstOrCreate(['user_id' => $patient->id, 'role_id' => $roleIds['patient']]);
+        if (Schema::hasTable('usuarios') && Schema::hasTable('usuarios_papeis')) {
+            $adminUsuario = DB::table('usuarios')->where('email', 'admin@intrafarma.com')->first();
+            if ($adminUsuario) {
+                $ex = DB::table('usuarios_papeis')->where('usuario_id', $adminUsuario->id)->where('papel_id', $papeisMap['Administradores'])->exists();
+                if (!$ex) DB::table('usuarios_papeis')->insert(['usuario_id' => $adminUsuario->id, 'papel_id' => $papeisMap['Administradores']]);
+            }
         }
     }
 }

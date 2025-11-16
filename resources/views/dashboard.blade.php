@@ -11,11 +11,6 @@
                 @auth
                 <div class="flex items-center space-x-2">
                     <span class="text-gray-600">Bem-vindo, {{ Auth::user()->name }}!</span>
-                    @if(!Auth::user()->hasVerifiedEmail())
-                        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Email não verificado</span>
-                    @else
-                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Email verificado</span>
-                    @endif
                 </div>
                 
                 <form method="POST" action="{{ route('logout') }}">
