@@ -15,6 +15,16 @@ class PermissionService
      */
     public static function userHas(int $userId, string $code): bool
     {
+        $isAdmin = DB::table('usuarios_papeis')
+            ->join('papeis', 'papeis.id', '=', 'usuarios_papeis.papel_id')
+            ->join('usuarios', 'usuarios.id', '=', 'usuarios_papeis.usuario_id')
+            ->where('usuarios_papeis.usuario_id', $userId)
+            ->where('usuarios.ativo', true)
+            ->where('papeis.nome', 'Administradores')
+            ->exists();
+        if ($isAdmin) {
+            return true;
+        }
         try {
             $row = DB::selectOne('SELECT fn_usuario_tem_permissao(?, ?) AS ok', [$userId, $code]);
             if ($row && isset($row->ok)) {
@@ -38,5 +48,16 @@ class PermissionService
             ->where('permissoes.codigo', $code)
             ->exists();
         return $viaRole;
+    }
+
+    public static function userIsAdmin(int $userId): bool
+    {
+        return DB::table('usuarios_papeis')
+            ->join('papeis', 'papeis.id', '=', 'usuarios_papeis.papel_id')
+            ->join('usuarios', 'usuarios.id', '=', 'usuarios_papeis.usuario_id')
+            ->where('usuarios_papeis.usuario_id', $userId)
+            ->where('usuarios.ativo', true)
+            ->where('papeis.nome', 'Administradores')
+            ->exists();
     }
 }

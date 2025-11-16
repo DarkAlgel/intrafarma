@@ -21,13 +21,13 @@
                     <h2 class="text-lg font-semibold text-gray-800">Alterar Senha</h2>
                     <p class="text-sm text-gray-600 mt-1">Segurança da conta</p>
                 </a>
-                @if($canManageUsers)
+                @if($isAdmin || $canManageUsers)
                 <a href="{{ route('usuarios.index') }}" class="card p-6 block">
                     <h2 class="text-lg font-semibold text-gray-800">Usuários</h2>
                     <p class="text-sm text-gray-600 mt-1">Cadastro e edição de usuários</p>
                 </a>
                 @endif
-                @if($canManagePerms)
+                @if($isAdmin || $canManagePerms)
                 <a href="{{ route('permissoes.index') }}" class="card p-6 block">
                     <h2 class="text-lg font-semibold text-gray-800">Permissões</h2>
                     <p class="text-sm text-gray-600 mt-1">Gerenciamento de roles e acessos</p>

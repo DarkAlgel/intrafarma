@@ -11,6 +11,9 @@ class UsuarioPermisssaoSeeder extends Seeder
 {
     public function run(): void
     {
+        // ADMIN: acesso total — assegura papel Administradores com todas permissões e atribui também diretamente ao usuário admin
+        // UI: botões e funcionalidades de Configurações dependem de 'gerenciar_usuarios' e 'gerenciar_permissoes'
+        // CRUD: códigos adicionais incluídos para cobrir operações de tela e testes de desenvolvimento
         if (!Schema::hasTable('usuarios') || !Schema::hasTable('papeis') || !Schema::hasTable('permissoes')) {
             return;
         }
@@ -32,6 +35,15 @@ class UsuarioPermisssaoSeeder extends Seeder
             ['codigo' => 'ver_dispensacoes', 'nome' => 'Ver Dispensações'],
             ['codigo' => 'paciente_ver_medicamentos', 'nome' => 'Paciente: Ver Medicamentos'],
             ['codigo' => 'paciente_ver_historico', 'nome' => 'Paciente: Ver Histórico'],
+            // permissões adicionais para cobrir CRUD/ações de interface
+            ['codigo' => 'pacientes_crud', 'nome' => 'Pacientes: CRUD'],
+            ['codigo' => 'fornecedores_crud', 'nome' => 'Fornecedores: CRUD'],
+            ['codigo' => 'entradas_crud', 'nome' => 'Entradas: CRUD'],
+            ['codigo' => 'dispensacoes_crud', 'nome' => 'Dispensações: CRUD'],
+            ['codigo' => 'medicamentos_crud', 'nome' => 'Medicamentos: CRUD'],
+            ['codigo' => 'lotes_crud', 'nome' => 'Lotes: CRUD'],
+            ['codigo' => 'relatorios', 'nome' => 'Acesso a Relatórios'],
+            ['codigo' => 'acesso_sistema', 'nome' => 'Acesso ao Sistema'],
         ];
         foreach ($permissoes as $p) {
             DB::table('permissoes')->updateOrInsert(['codigo' => $p['codigo']], ['nome' => $p['nome']]);
@@ -95,6 +107,12 @@ class UsuarioPermisssaoSeeder extends Seeder
             if ($u['email'] === 'operador@intrafarma.com') {
                 $pid = $permsMap['ver_estoque'] ?? null;
                 if ($pid) DB::table('usuarios_permissoes')->updateOrInsert(['usuario_id' => $uid, 'permissao_id' => $pid]);
+            }
+
+            if ($u['email'] === 'admin@intrafarma.com') {
+                foreach (array_values($permsMap->toArray()) as $pidAll) {
+                    DB::table('usuarios_permissoes')->updateOrInsert(['usuario_id' => $uid, 'permissao_id' => $pidAll]);
+                }
             }
 
             if ($u['email'] === 'paciente@intrafarma.com') {

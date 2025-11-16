@@ -15,9 +15,10 @@ class SettingsController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $canManageUsers = PermissionService::userHas($user->id, 'gerenciar_usuarios');
-        $canManagePerms = PermissionService::userHas($user->id, 'gerenciar_permissoes');
-        return view('configuracoes.index', compact('canManageUsers', 'canManagePerms'));
+        $isAdmin = PermissionService::userIsAdmin($user->id);
+        $canManageUsers = $isAdmin || PermissionService::userHas($user->id, 'gerenciar_usuarios');
+        $canManagePerms = $isAdmin || PermissionService::userHas($user->id, 'gerenciar_permissoes');
+        return view('configuracoes.index', compact('isAdmin', 'canManageUsers', 'canManagePerms'));
     }
 
     public function account()

@@ -112,15 +112,31 @@ class FarmaciaDataSeeder extends Seeder
         foreach ($lotesData as $ld) {
             $mid = $medsMap[$ld['codigo']] ?? null;
             if ($mid) {
-                $loteId = DB::table('lotes')->insertGetId([
-                    'medicamento_id' => $mid,
-                    'data_fabricacao' => $ld['data_fabricacao'],
-                    'validade' => $ld['validade'],
-                    'nome_comercial' => $ld['nome_comercial'],
-                    'ativo' => true,
-                    'observacao' => null,
-                ]);
-                $loteIds[$ld['codigo']] = $loteId;
+                $mes = date('Y-m-01', strtotime($ld['validade']));
+                $existingId = DB::table('lotes')
+                    ->where('medicamento_id', $mid)
+                    ->where('validade_mes', $mes)
+                    ->value('id');
+                if ($existingId) {
+                    DB::table('lotes')->where('id', $existingId)->update([
+                        'data_fabricacao' => $ld['data_fabricacao'],
+                        'validade' => $ld['validade'],
+                        'nome_comercial' => $ld['nome_comercial'],
+                        'ativo' => true,
+                        'observacao' => null,
+                    ]);
+                    $loteIds[$ld['codigo']] = $existingId;
+                } else {
+                    $loteId = DB::table('lotes')->insertGetId([
+                        'medicamento_id' => $mid,
+                        'data_fabricacao' => $ld['data_fabricacao'],
+                        'validade' => $ld['validade'],
+                        'nome_comercial' => $ld['nome_comercial'],
+                        'ativo' => true,
+                        'observacao' => null,
+                    ]);
+                    $loteIds[$ld['codigo']] = $loteId;
+                }
             }
         }
 
@@ -135,18 +151,19 @@ class FarmaciaDataSeeder extends Seeder
             $fid = $forns[$e['fornecedor']] ?? null;
             $lid = $loteIds[$e['codigo']] ?? null;
             if ($fid && $lid) {
-                DB::table('entradas')->insert([
-                    'data_entrada' => $e['data'],
-                    'fornecedor_id' => $fid,
-                    'lote_id' => $lid,
-                    'numero_lote_fornecedor' => $e['numero'],
-                    'quantidade_informada' => $e['quant'],
-                    'quantidade_base' => $e['quant'],
-                    'unidade' => $e['unidade'],
-                    'unidades_por_embalagem' => $e['emb'],
-                    'estado' => $e['estado'],
-                    'observacao' => null,
-                ]);
+                DB::table('entradas')->updateOrInsert(
+                    ['lote_id' => $lid, 'numero_lote_fornecedor' => $e['numero']],
+                    [
+                        'data_entrada' => $e['data'],
+                        'fornecedor_id' => $fid,
+                        'quantidade_informada' => $e['quant'],
+                        'quantidade_base' => $e['quant'],
+                        'unidade' => $e['unidade'],
+                        'unidades_por_embalagem' => $e['emb'],
+                        'estado' => $e['estado'],
+                        'observacao' => null,
+                    ]
+                );
             }
         }
 
