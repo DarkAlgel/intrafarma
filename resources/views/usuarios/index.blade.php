@@ -27,7 +27,7 @@
                                     <i id="iconSortNome" class="fas fa-sort-up ml-2"></i>
                                 </th>
                                 <th class="table-header"><span class="inline-flex items-center"><i class="fas fa-envelope mr-2"></i>E-mail</span></th>
-                                <th class="table-header"><span class="inline-flex items-center"><i class="fas fa-key mr-2"></i>Permissão atribuída</span></th>
+                                <th class="table-header"><span class="inline-flex items-center"><i class="fas fa-key mr-2"></i>Permissões efetivas</span></th>
                                 <th class="table-header">Ações</th>
                             </tr>
                         </thead>
@@ -43,12 +43,9 @@
                                     </span>
                                 </td>
                                 <td class="table-cell">
-                                    @php 
-                                        $assignedIds = ($userPerms[$u->id] ?? collect())->pluck('permission_id')->all();
-                                        $assignedNames = collect($assignedIds)->map(fn($pid)=>optional($permissions->firstWhere('id', $pid))->name)->filter()->values()->all();
-                                    @endphp
+                                    @php $eff = $effectivePermsByUser[$u->id] ?? []; @endphp
                                     <div class="flex flex-wrap gap-2" id="rolePermsRow{{ $u->id }}">
-                                        @forelse($assignedNames as $nm)
+                                        @forelse($eff as $nm)
                                             <span class="inline-flex items-center px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium">{{ $nm }}</span>
                                         @empty
                                             <span class="text-gray-500 text-sm">Sem permissão</span>
@@ -86,7 +83,10 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   const rolePermsMap = @json($rolePermNames);
+  const userRoleMap = @json($userRoles);
+  const userPermNamesMap = @json($userPermNamesByUser);
   const permDescriptions = @json($permissionDescriptions);
   function renderBadges(container, names) {
     container.innerHTML = '';
@@ -193,23 +193,56 @@ document.addEventListener('DOMContentLoaded', () => {
   btnCancelRoleFooter && btnCancelRoleFooter.addEventListener('click', closeRole);
   function renderRoleList(q){
     roleList.innerHTML='';
+    const none = document.createElement('label');
+    none.className = 'block p-3 rounded border hover:bg-gray-50 cursor-pointer';
+    none.innerHTML = `<input type="radio" name="role_id" value="" class="mr-2"> <span class="font-medium text-sm">Sem papel</span>`;
+    roleList.appendChild(none);
     @foreach($roles as $r)
       if(!q || '{{ $r->name }}'.toLowerCase().includes(q.toLowerCase())){
         const li = document.createElement('label');
         li.className = 'block p-3 rounded border hover:bg-gray-50 cursor-pointer';
         const perms = (rolePermsMap['{{ $r->id }}'] || []).join(', ');
-        li.innerHTML = `<input type=\"radio\" name=\"role_id\" value=\"{{ $r->id }}\" class=\"mr-2\"> <span class=\"font-medium text-sm\">{{ $r->name }}</span>${perms ? `<div class=\"text-xs text-gray-600 mt-1\">Permissões: ${perms}</div>` : ''}`;
+        li.innerHTML = `<input type="radio" name="role_id" value="{{ $r->id }}" class="mr-2"> <span class="font-medium text-sm">{{ $r->name }}</span>${perms ? `<div class="text-xs text-gray-600 mt-1">Permissões: ${perms}</div>` : ''}`;
         roleList.appendChild(li);
       }
     @endforeach
+    const current = userRoleMap[currentUserId] ?? '';
+    const input = roleList.querySelector(`input[name="role_id"][value="${current||''}"]`);
+    if(input){ input.checked = true; }
+    updateRoleSelectionUI();
   }
   roleSearch && roleSearch.addEventListener('input', (e)=>renderRoleList(e.target.value));
   const btnConfirmRole = document.getElementById('btnConfirmRole');
-  btnConfirmRole && btnConfirmRole.addEventListener('click', ()=>{
+  btnConfirmRole && btnConfirmRole.addEventListener('click', async ()=>{
     if(!currentUserId) return;
+    const sel = roleList.querySelector('input[name="role_id"]:checked');
+    const roleId = sel ? sel.value : '';
+    const rd = getRowData(currentUserId);
+    const effNames = Array.from(new Set([...(rolePermsMap[roleId] || []), ...((userPermNamesMap[currentUserId] || []))]));
+    if(effNames.length === 0 && window.Swal){
+      const ok = await Swal.fire({ icon:'warning', title:'Usuário ficará sem permissões', showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Cancelar' }).then(r=>r.isConfirmed);
+      if(!ok) return;
+    }
     setLoading(btnConfirmRole, true);
-    roleForm.setAttribute('action', `{{ url('/configuracoes/usuarios') }}/${currentUserId}`);
-    roleForm.submit();
+    try{
+      const resp = await fetch(`{{ url('/configuracoes/usuarios') }}/${currentUserId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+        body: new URLSearchParams({ '_method':'PUT', 'name': rd.name, 'email': rd.email, 'role_id': roleId })
+      });
+      if(!resp.ok){
+        const txt = await resp.text();
+        throw new Error(txt || 'Erro ao atualizar papel');
+      }
+      userRoleMap[currentUserId] = roleId || null;
+      renderBadges(document.getElementById(`rolePermsRow${currentUserId}`), effNames);
+      if (window.Swal) Swal.fire({ icon:'success', title:'Papel atualizado', timer:1500, showConfirmButton:false });
+      closeRole();
+    }catch(err){
+      if (window.Swal) Swal.fire({ icon:'error', title:'Falha ao atualizar', text: String(err).slice(0,400) });
+    }finally{
+      setLoading(btnConfirmRole, false);
+    }
   });
   const editOverlay = document.getElementById('overlayEdit');
   const editModal = document.getElementById('modalEdit');
@@ -296,6 +329,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   bindAriaControlButtons();
 
+  roleList && roleList.addEventListener('change', updateRoleSelectionUI);
+
   function getModalBox(modal){
     if(!modal) return null;
     const box = modal.querySelector(':scope > div');
@@ -368,27 +403,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <div id="overlayRole" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-200 opacity-0" aria-hidden="true"></div>
-<div id="modalRole" role="dialog" aria-modal="true" aria-labelledby="titleRole" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-200 opacity-0 scale-95">
-    <div class="px-6 py-4 border-b flex items-center justify-between">
-        <h3 id="titleRole" class="text-lg font-semibold">Alterar Papel</h3>
-        <button id="btnCancelRole" class="text-sm text-gray-600 hover:text-gray-800">Fechar</button>
-    </div>
-    <div class="px-6 py-4">
-        <input id="roleSearch" class="form-input w-full" placeholder="Buscar papel pelo nome">
-        <div id="roleList" class="mt-4 space-y-2" role="listbox" aria-label="Lista de papéis"></div>
-    </div>
-    <div class="px-6 py-4 border-t flex justify-end gap-2">
-        <form id="roleForm" method="POST">
-            @csrf
-            @method('PUT')
-            <input type="hidden" id="roleFormName" name="name">
-            <input type="hidden" id="roleFormEmail" name="email">
-            <button type="button" id="btnConfirmRole" class="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Confirmar</button>
-        </form>
-        <button type="button" id="btnCancelRoleFooter" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancelar</button>
- </div>
-</div>
+  <div id="modalRole" role="dialog" aria-modal="true" aria-labelledby="titleRole" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-200 opacity-0 scale-95">
+      <div class="px-6 py-4 border-b flex items-center justify-between">
+          <h3 id="titleRole" class="text-lg font-semibold">Alterar Papel</h3>
+          <button id="btnCancelRole" class="text-sm text-gray-600 hover:text-gray-800">Fechar</button>
+      </div>
+      <div class="px-6 py-4">
+          <input id="roleSearch" class="form-input w-full" placeholder="Buscar papel pelo nome">
+          <div id="roleList" class="mt-4 space-y-2" role="listbox" aria-label="Lista de papéis"></div>
+          <div class="mt-4">
+            <div class="text-sm text-gray-700">Permissões efetivas previstas</div>
+            <div id="rolePreview" class="flex flex-wrap gap-2 mt-2"></div>
+          </div>
+      </div>
+      <div class="px-6 py-4 border-t flex justify-end gap-2">
+          <form id="roleForm" method="POST">
+              @csrf
+              @method('PUT')
+              <input type="hidden" id="roleFormName" name="name">
+              <input type="hidden" id="roleFormEmail" name="email">
+              <button type="button" id="btnConfirmRole" class="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Confirmar</button>
+          </form>
+          <button type="button" id="btnCancelRoleFooter" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancelar</button>
+  </div>
+  </div>
 
 <div id="overlayEdit" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-200 opacity-0" aria-hidden="true"></div>
 <div id="modalEdit" role="dialog" aria-modal="true" aria-labelledby="titleEdit" class="fixed inset-0 hidden flex items-center justify-center p-4 z-50">

@@ -10,18 +10,10 @@
           Permissões
         </h1>
         <p class="text-sm text-gray-500 mt-1">
-          Gerencie papéis do sistema, permissões e atribuições rápidas.
+          Gerencie papéis do sistema, permissões e atribuições.
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <a href="{{ route('permissoes.export.csv') }}" class="btn-secondary inline-flex items-center gap-2 text-sm">
-          <i class="fas fa-file-csv"></i>
-          <span>Exportar CSV</span>
-        </a>
-        <a href="{{ route('permissoes.export.pdf') }}" class="btn-secondary inline-flex items-center gap-2 text-sm">
-          <i class="fas fa-file-pdf"></i>
-          <span>Exportar PDF</span>
-        </a>
         <button
           id="btnOpenCreateRole"
           class="btn-primary inline-flex items-center gap-2 text-sm shadow-sm"
@@ -123,7 +115,7 @@
                       @endif
                     </div>
                     <span class="text-xs text-gray-500">
-                      {{ count($permsForRole) }} {{ Str::plural('permissão', count($permsForRole)) }}
+                      {{ count($permsForRole) }} {{ \Illuminate\Support\Str::plural('permissão', count($permsForRole)) }}
                     </span>
                   </div>
                 </td>
@@ -144,7 +136,7 @@
                   <div class="flex flex-wrap items-center justify-end gap-2">
                     <button
                       type="button"
-                      class="btn-secondary inline-flex items-center gap-2 text-xs"
+                      class="btn-secondary inline-flex items-center gap-2 text-xs btnViewRole"
                       data-role="{{ $r->id }}"
                     >
                       <i class="fas fa-eye"></i>
@@ -189,95 +181,6 @@
       <div class="px-6 py-4 border-t bg-gray-50/80 flex items-center justify-between text-sm text-gray-600">
         <div>
           {{ $roles->links() }}
-        </div>
-      </div>
-    </div>
-
-    {{-- ATRIBUIÇÕES RÁPIDAS --}}
-    <div class="card p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-md font-semibold text-gray-800 flex items-center gap-2">
-          <i class="fas fa-bolt text-gray-500"></i>
-          Atribuições rápidas
-        </h3>
-        <p class="text-xs text-gray-500">
-          Conceda ou revogue permissões sem sair da página.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {{-- CONCEDER --}}
-        <div class="rounded-lg border border-gray-100 bg-gray-50/60 p-4">
-          <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <i class="fas fa-plus text-gray-500 text-xs"></i>
-            Conceder permissão
-          </h4>
-          <form
-            method="POST"
-            action="{{ route('permissoes.assign') }}"
-            class="grid grid-cols-1 gap-3"
-          >
-            @csrf
-            <select
-              name="role_id"
-              class="form-input text-sm"
-              aria-label="Selecionar papel para conceder"
-            >
-              @foreach($roles as $r)
-                <option value="{{ $r->id }}">{{ $r->name }}</option>
-              @endforeach
-            </select>
-            <select
-              name="permission_id"
-              class="form-input text-sm"
-              aria-label="Selecionar permissão a conceder"
-            >
-              @foreach($permissions as $p)
-                <option value="{{ $p->id }}">{{ $p->name }}</option>
-              @endforeach
-            </select>
-            <button class="btn-primary text-sm inline-flex items-center justify-center gap-2">
-              <i class="fas fa-check-circle"></i>
-              <span>Conceder</span>
-            </button>
-          </form>
-        </div>
-
-        {{-- REVOGAR --}}
-        <div class="rounded-lg border border-gray-100 bg-gray-50/60 p-4">
-          <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <i class="fas fa-minus text-gray-500 text-xs"></i>
-            Revogar permissão
-          </h4>
-          <form
-            method="POST"
-            action="{{ route('permissoes.revoke') }}"
-            class="grid grid-cols-1 gap-3"
-          >
-            @csrf
-            <select
-              name="role_id"
-              class="form-input text-sm"
-              aria-label="Selecionar papel para revogar"
-            >
-              @foreach($roles as $r)
-                <option value="{{ $r->id }}">{{ $r->name }}</option>
-              @endforeach
-            </select>
-            <select
-              name="permission_id"
-              class="form-input text-sm"
-              aria-label="Selecionar permissão a revogar"
-            >
-              @foreach($permissions as $p)
-                <option value="{{ $p->id }}">{{ $p->name }}</option>
-              @endforeach
-            </select>
-            <button class="btn-secondary text-sm inline-flex items-center justify-center gap-2">
-              <i class="fas fa-times-circle"></i>
-              <span>Revogar</span>
-            </button>
-          </form>
         </div>
       </div>
     </div>

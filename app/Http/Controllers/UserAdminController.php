@@ -35,6 +35,11 @@ class UserAdminController extends Controller
             $pids = ($rolePerms[$r->id] ?? collect())->pluck('permission_id')->all();
             $rolePermNames[$r->id] = collect($pids)->map(fn($id) => $permissionsById[$id]->name ?? null)->filter()->values()->all();
         }
+        $userPermNamesByUser = [];
+        foreach ($userPerms as $uid => $items) {
+            $pids = collect($items)->pluck('permission_id')->all();
+            $userPermNamesByUser[$uid] = collect($pids)->map(fn($id) => $permissionsById[$id]->name ?? null)->filter()->values()->all();
+        }
         $effectivePermsByUser = [];
         foreach ($users as $u) {
             $rid = $userRoles[$u->id] ?? null;
@@ -43,7 +48,7 @@ class UserAdminController extends Controller
             $userNames = collect($userPids)->map(fn($id) => ($permissionsById[$id]->name ?? null))->filter()->values()->all();
             $effectivePermsByUser[$u->id] = collect(array_merge($roleNames, $userNames))->unique()->values()->all();
         }
-        return view('usuarios.index', compact('users', 'roles', 'permissions', 'userRoles', 'userPerms', 'rolePermNames', 'effectivePermsByUser', 'permissionDescriptions'));
+        return view('usuarios.index', compact('users', 'roles', 'permissions', 'userRoles', 'userPerms', 'rolePermNames', 'effectivePermsByUser', 'permissionDescriptions', 'userPermNamesByUser'));
     }
 
     public function store(Request $request)
@@ -85,31 +90,53 @@ class UserAdminController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string'],
             'email' => ['required', 'email', 'unique:usuarios,email,'.$id],
-            'role_id' => ['nullable', 'integer'],
+            'role_id' => ['nullable', 'integer', 'exists:papeis,id'],
             'permission_ids' => ['array'],
             'permission_ids.*' => ['integer'],
             'set_permission_id' => ['nullable', 'integer'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
-        DB::table('usuarios')->where('id', $id)->update(['nome' => $data['name'], 'email' => $data['email']]);
-        if (!empty($data['password'])) {
-            DB::table('usuarios')->where('id', $id)->update(['senha_hash' => Hash::make($data['password'])]);
-        }
-        if (!empty($data['role_id'])) {
-            DB::table('usuarios_papeis')->where('usuario_id', $id)->delete();
-            DB::table('usuarios_papeis')->insert(['usuario_id' => $id, 'papel_id' => $data['role_id']]);
-        }
-        if (array_key_exists('permission_ids', $data)) {
-            DB::table('usuarios_permissoes')->where('usuario_id', $id)->delete();
-            foreach ($data['permission_ids'] ?? [] as $pid) {
-                DB::table('usuarios_permissoes')->updateOrInsert(['usuario_id' => $id, 'permissao_id' => $pid]);
+        try {
+            DB::table('usuarios')->where('id', $id)->update(['nome' => $data['name'], 'email' => $data['email']]);
+            if (!empty($data['password'])) {
+                DB::table('usuarios')->where('id', $id)->update(['senha_hash' => Hash::make($data['password'])]);
             }
+            if (array_key_exists('role_id', $data)) {
+                DB::table('usuarios_papeis')->where('usuario_id', $id)->delete();
+                if (!empty($data['role_id'])) {
+                    DB::table('usuarios_papeis')->insert(['usuario_id' => $id, 'papel_id' => $data['role_id']]);
+                }
+            }
+            if (array_key_exists('permission_ids', $data)) {
+                DB::table('usuarios_permissoes')->where('usuario_id', $id)->delete();
+                foreach ($data['permission_ids'] ?? [] as $pid) {
+                    DB::table('usuarios_permissoes')->updateOrInsert(['usuario_id' => $id, 'permissao_id' => $pid]);
+                }
+            }
+            if (!empty($data['set_permission_id'])) {
+                DB::table('usuarios_permissoes')->where('usuario_id', $id)->delete();
+                DB::table('usuarios_permissoes')->updateOrInsert(['usuario_id' => $id, 'permissao_id' => $data['set_permission_id']]);
+            }
+            if ($request->expectsJson()) {
+                $rid = DB::table('usuarios_papeis')->where('usuario_id', $id)->value('papel_id');
+                $roleNames = $rid ? DB::table('papeis_permissoes')
+                    ->join('permissoes', 'permissoes.id', '=', 'papeis_permissoes.permissao_id')
+                    ->where('papeis_permissoes.papel_id', $rid)
+                    ->pluck('permissoes.nome')->all() : [];
+                $userNames = DB::table('usuarios_permissoes')
+                    ->join('permissoes', 'permissoes.id', '=', 'usuarios_permissoes.permissao_id')
+                    ->where('usuarios_permissoes.usuario_id', $id)
+                    ->pluck('permissoes.nome')->all();
+                $effective = collect(array_merge($roleNames, $userNames))->unique()->values()->all();
+                return response()->json(['success' => true, 'role_id' => $rid, 'effective_permissions' => $effective]);
+            }
+            return redirect()->route('usuarios.index');
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            }
+            throw $e;
         }
-        if (!empty($data['set_permission_id'])) {
-            DB::table('usuarios_permissoes')->where('usuario_id', $id)->delete();
-            DB::table('usuarios_permissoes')->updateOrInsert(['usuario_id' => $id, 'permissao_id' => $data['set_permission_id']]);
-        }
-        return redirect()->route('usuarios.index');
     }
 
     public function destroy(int $id)
