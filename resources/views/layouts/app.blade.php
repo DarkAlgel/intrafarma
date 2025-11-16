@@ -355,11 +355,52 @@
                         Fornecedores
                     </a>
                     
-                    @if($uid && (\App\Services\PermissionService::userHas($uid,'ver_minha_conta') || \App\Services\PermissionService::userHas($uid,'alterar_senha')))
-                    <a href="{{ route('configuracoes.index') }}" class="nav-link {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}">
-                        <i class="fas fa-cog mr-3"></i>
-                        Configurações
-                    </a>
+                    @php $isAdmin = $uid ? \App\Services\PermissionService::userIsAdmin($uid) : false; @endphp
+                    @if($isAdmin)
+                        <div x-data="{ open: {{ request()->routeIs(['configuracoes.*','usuarios.*','permissoes.*']) ? 'true' : 'false' }} }" class="relative">
+                            <button @click="open = !open" 
+                                    class="flex items-center justify-between w-full nav-link {{ request()->routeIs(['configuracoes.*','usuarios.*','permissoes.*']) ? 'active' : '' }}" 
+                                    style="margin: 0; padding: 12px 20px;">
+                                <div class="flex items-center">
+                                    <i class="fas fa-cog mr-3 text-xl"></i>
+                                    <span class="font-semibold">Configurações</span>
+                                </div>
+                                <i class="fas" :class="{'fa-chevron-up': open, 'fa-chevron-down': !open}"></i>
+                            </button>
+                            <div x-show="open" x-collapse>
+                                <a href="{{ route('usuarios.index') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('usuarios.*') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-users-cog mr-2 text-xs"></i> Usuários
+                                </a>
+                                <a href="{{ route('permissoes.index') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('permissoes.*') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-shield-alt mr-2 text-xs"></i> Permissões
+                                </a>
+                                <a href="{{ route('configuracoes.password') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('configuracoes.password') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-key mr-2 text-xs"></i> Alterar Senha
+                                </a>
+                                <a href="{{ route('configuracoes.account') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('configuracoes.account') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-id-card mr-2 text-xs"></i> Alterar Perfil
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}" class="pl-12 py-2">
+                                    @csrf
+                                    <button type="submit" class="text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out w-full text-left">
+                                        <i class="fas fa-sign-out-alt mr-2 text-xs"></i> Sair
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @elseif($uid && (\App\Services\PermissionService::userHas($uid,'ver_minha_conta') || \App\Services\PermissionService::userHas($uid,'alterar_senha')))
+                        <a href="{{ route('configuracoes.index') }}" class="nav-link {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}">
+                            <i class="fas fa-cog mr-3"></i>
+                            Configurações
+                        </a>
                     @endif
                     
                     @if($uid && \App\Services\PermissionService::userHas($uid,'paciente_ver_historico'))

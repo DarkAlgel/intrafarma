@@ -398,6 +398,18 @@ php -S 127.0.0.1:9100 -t public
 - `/password/reset/{token}` - Redefinição de senha
 
 ### Rotas de Autenticação
+
+## Interface de Configurações
+
+- Menu de Configurações com dropdown na barra lateral segue o padrão visual de Dispensações.
+- Itens do menu:
+  - `Usuarios` redireciona para `usuarios.index`
+  - `Permissoes` redireciona para `permissoes.index`
+  - `Alterar Senha` redireciona para `configuracoes.password`
+  - `Alterar Perfil` redireciona para `configuracoes.account`
+  - `Sair` envia `POST` para `logout`
+- Estrutura de views centralizada em `resources/views/configuracoes/` com arquivos `index.blade.php`, `account.blade.php`, `password.blade.php`.
+- Visibilidade do dropdown é condicionada ao papel Administrador; usuários comuns veem link simples de Configurações conforme permissões (`ver_minha_conta`/`alterar_senha`).
 - `/email/verify` - Página de verificação de email (requer login)
 - `/email/verify/{id}/{hash}` - Confirmação de email via link
 - `/email/resend` - Reenvio de email de verificação
