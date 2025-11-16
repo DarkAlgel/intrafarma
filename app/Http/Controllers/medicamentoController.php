@@ -2,81 +2,147 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreMedicamentoRequest;
 use App\Models\Medicamento;
-use App\Models\Laboratorio; // Para o formulário
-use App\Models\ClasseTerapeutica; // Para o formulário
-use Illuminate\Validation\Rule;
-use Exception;
+use App\Models\Laboratorio;
+use App\Models\ClasseTerapeutica;
+use Illuminate\Database\QueryException;
 
 class MedicamentoController extends Controller
 {
-    // Tipos ENUM baseados no Dicionário de Dados
-    private $enums = [
-        'tarjas' => ['sem_tarja', 'tarja_amarela', 'tarja_vermelha', 'tarja_preta'],
-        'formas_retirada' => ['MIP', 'com_prescricao'],
-        'formas_fisica' => ['solida', 'pastosa', 'liquida', 'gasosa'],
-        'unidades_contagem' => ['comprimido', 'capsula', 'dragea', 'sache', 'ampola', 'frasco', 'caixa', 'ml', 'g', 'unidade', 'aerosol', 'xarope', 'solucao'],
-    ];
-
     /**
-     * Exibe a lista de medicamentos.
+     * Retorna os dados necessários para os formulários (dropdowns de ENUMs).
      */
+    private function getFormOptions(): array
+    {
+        return [
+            'laboratorios' => Laboratorio::orderBy('nome')->get(),
+            'classes' => ClasseTerapeutica::orderBy('nome')->get(),
+            'tarjaTipos' => ['sem_tarja', 'tarja_amarela', 'tarja_vermelha', 'tarja_preta'],
+            'formaRetiradaTipos' => ['MIP', 'com_prescricao'],
+            'formaFisicaTipos' => ['solida', 'pastosa', 'liquida', 'gasosa'],
+            'unidadeContagemTipos' => [
+                'comprimido', 'capsula', 'dragea', 'sache', 'ampola', 'frasco', 
+                'caixa', 'ml', 'g', 'unidade', 'aerosol', 'xarope', 'solucao'
+            ]
+        ];
+    }
+
     public function index()
     {
+        // Eager loading para evitar N+1 queries na view
+        
+        // =================================================================
+        // A CORREÇÃO ESTÁ AQUI
+        // Você estava usando ->get(), que busca TODOS os registros de uma vez.
+        // Para a paginação (->links()) funcionar, você DEVE usar ->paginate().
+        // =================================================================
         $medicamentos = Medicamento::with(['laboratorio', 'classeTerapeutica'])
             ->orderBy('nome')
-            ->paginate(15);
-
+            ->paginate(15); // <-- TROCADO DE 'get()' PARA 'paginate(15)'
+            
         return view('medicamentos.index', compact('medicamentos'));
     }
 
-    /**
-     * Exibe o formulário de criação de um novo medicamento, carregando as dependências.
-     */
     public function create()
     {
-        // ⭐️ Carrega dependências necessárias para o formulário ⭐️
-        $laboratorios = Laboratorio::pluck('nome', 'id');
-        $classes = ClasseTerapeutica::pluck('nome', 'id');
+        $options = $this->getFormOptions();
         
-        return view('medicamentos.create', array_merge(
-            compact('laboratorios', 'classes'),
-            $this->enums
-        ));
+        return view('medicamentos.create', [
+            'laboratorios' => $options['laboratorios'],
+            'classes' => $options['classes'],
+            'tarjaTipos' => $options['tarjaTipos'],
+            'formaRetiradaTipos' => $options['formaRetiradaTipos'],
+            'formaFisicaTipos' => $options['formaFisicaTipos'],
+            'unidadeContagemTipos' => $options['unidadeContagemTipos'],
+        ]);
     }
 
-    /**
-     * Salva um novo medicamento no banco de dados.
-     */
-    public function store(Request $request)
+    public function store(StoreMedicamentoRequest $request)
     {
-        // 1. Definição das regras de validação (usando os ENUMs)
-        $rules = [
-            'codigo' => 'required|string|unique:medicamentos,codigo',
-            'nome' => 'required|string',
-            'laboratorio_id' => 'required|exists:laboratorios,id',
-            'classe_terapeutica_id' => 'required|exists:classes_terapeuticas,id',
-            'tarja' => ['required', Rule::in($this->enums['tarjas'])],
-            'forma_retirada' => ['required', Rule::in($this->enums['formas_retirada'])],
-            'forma_fisica' => ['required', Rule::in($this->enums['formas_fisica'])],
-            'apresentacao' => ['required', Rule::in($this->enums['unidades_contagem'])],
-            'unidade_base' => ['required', Rule::in($this->enums['unidades_contagem'])],
-            'dosagem_valor' => 'required|numeric|min:0',
-            'dosagem_unidade' => 'required|string|max:10',
-            'generico' => 'boolean',
-            'limite_minimo' => 'nullable|numeric|min:0',
-        ];
-
-        $validatedData = $request->validate($rules);
-
         try {
-            // Nota: O campo 'serial_por_classe' deve ser preenchido por trigger ou lógica customizada.
-            Medicamento::create($validatedData);
+            Medicamento::create($request->validated());
 
-            return redirect()->route('medicamentos.index')->with('success', 'Medicamento cadastrado com sucesso!');
-        } catch (Exception $e) {
-            return back()->withInput()->with('error', 'Falha ao cadastrar. Detalhe: ' . $e->getMessage());
+            return redirect()
+                ->route('medicamentos.index')
+                ->with('success', 'Medicamento cadastrado com sucesso!');
+                
+        } catch (QueryException $e) {
+            // Erro de violação de constraint UNIQUE (código duplicado)
+            if (strpos($e->getMessage(), 'medicamentos_codigo_key') !== false) {
+                return back()
+                    ->withErrors(['codigo' => 'Este código já está em uso!'])
+                    ->withInput();
+            }
+
+            // Para outros erros de banco
+            return back()
+                ->with('error', 'Erro ao salvar o medicamento: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function edit($id)
+    {
+        $medicamento = Medicamento::findOrFail($id);
+        $options = $this->getFormOptions();
+        
+        return view('medicamentos.edit', [
+            'medicamento' => $medicamento,
+            'laboratorios' => $options['laboratorios'],
+            'classes' => $options['classes'],
+            'tarjaTipos' => $options['tarjaTipos'],
+            'formaRetiradaTipos' => $options['formaRetiradaTipos'],
+            'formaFisicaTipos' => $options['formaFisicaTipos'],
+            'unidadeContagemTipos' => $options['unidadeContagemTipos'],
+        ]);
+    }
+
+    public function update(StoreMedicamentoRequest $request, $id)
+    {
+        try {
+            $medicamento = Medicamento::findOrFail($id);
+            $medicamento->update($request->validated());
+
+            return redirect()
+                ->route('medicamentos.index')
+                ->with('success', 'Medicamento atualizado com sucesso!');
+
+        } catch (QueryException $e) {
+            if (strpos($e->getMessage(), 'medicamentos_codigo_key') !== false) {
+                return back()
+                    ->withErrors(['codigo' => 'Este código já está em uso!'])
+                    ->withInput();
+            }
+
+            return back()
+                ->with('error', 'Erro ao atualizar o medicamento: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $medicamento = Medicamento::findOrFail($id);
+            $medicamento->delete();
+
+            return redirect()
+                ->route('medicamentos.index')
+                ->with('success', 'Medicamento removido com sucesso!');
+
+        } catch (QueryException $e) {
+            // Erro de violação de FK (ON DELETE RESTRICT)
+            // ex: lotes_medicamento_id_fkey
+            if (strpos($e->getMessage(), 'lotes_medicamento_id_fkey') !== false) {
+                return redirect()
+                    ->route('medicamentos.index')
+                    ->with('error', 'Não é possível excluir: este medicamento possui lotes cadastrados.');
+            }
+
+            return redirect()
+                ->route('medicamentos.index')
+                ->with('error', 'Erro ao remover o medicamento: ' . $e->getMessage());
         }
     }
 }

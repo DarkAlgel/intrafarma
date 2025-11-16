@@ -2,13 +2,33 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Medicamento extends Model
 {
-    protected $table = 'medicamentos';
-    public $timestamps = false; // Assumindo que não usa timestamps
+    use HasFactory;
 
+    /**
+     * O nome da tabela associada ao model.
+     *
+     * @var string
+     */
+    protected $table = 'medicamentos';
+
+    // =================================================================
+    // A CORREÇÃO ESTÁ AQUI
+    // Esta linha diz ao Laravel para NÃO tentar gerenciar
+    // as colunas 'created_at' e 'updated_at', que não existem
+    // no seu schema.
+    // =================================================================
+    public $timestamps = false;
+
+    /**
+     * Os atributos que podem ser atribuídos em massa.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'codigo',
         'nome',
@@ -23,27 +43,34 @@ class Medicamento extends Model
         'dosagem_unidade',
         'generico',
         'limite_minimo',
-        'serial_por_classe',
-        'ativo'
+        'ativo',
+        // 'serial_por_classe' é gerenciado pelo Trigger do banco,
+        // por isso não está no $fillable.
     ];
 
     /**
-     * Define o relacionamento com o Laboratório (FK: laboratorio_id).
+     * Define a relação com Laboratorio.
      */
     public function laboratorio()
     {
-        // ⭐️ CORREÇÃO PARA O ERRO: Adicionando o relacionamento
         return $this->belongsTo(Laboratorio::class);
     }
 
     /**
-     * Define o relacionamento com a Classe Terapêutica (FK: classe_terapeutica_id).
+     * Define a relação com ClasseTerapeutica.
      */
     public function classeTerapeutica()
     {
-        // ⭐️ CORREÇÃO PARA O ERRO: Adicionando o relacionamento
-        return $this->belongsTo(ClasseTerapeutica::class);
+        // Especifica a chave estrangeira, já que o nome do método
+        // é diferente do padrão (que seria 'classe_terapeutica')
+        return $this->belongsTo(ClasseTerapeutica::class, 'classe_terapeutica_id');
     }
-    
-    // NOTA: Para funcionar, os Models App\Models\Laboratorio.php e App\Models\ClasseTerapeutica.php precisam existir.
+
+    /**
+     * Define a relação com Lotes.
+     */
+    public function lotes()
+    {
+        return $this->hasMany(Lote::class); // Você precisará criar o Model 'Lote'
+    }
 }
