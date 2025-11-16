@@ -8,7 +8,6 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <script src="{{ asset('js/app.js') }}" defer></script>
-    {{-- ⭐️ ADIÇÃO NECESSÁRIA: ALPINE.JS (Para modais e submenus) ⭐️ --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> 
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -255,10 +254,41 @@
                     @endif
                     
                     @if($uid && \App\Services\PermissionService::userHas($uid,'gerenciar_usuarios'))
-                    <a href="{{ route('pacientes.index') }}" class="nav-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
-                        <i class="fas fa-users mr-3"></i>
-                        Pacientes
-                    </a>
+                        {{-- ⭐️ SUBMENU PACIENTES ⭐️ --}}
+                        <div x-data="{ open: {{ request()->routeIs(['pacientes.create', 'pacientes.index', 'pacientes.show', 'pacientes.edit']) ? 'true' : 'false' }} }" class="relative">
+                            
+                            <button @click="open = !open" 
+                                    class="flex items-center justify-between w-full nav-link {{ request()->routeIs(['pacientes.create', 'pacientes.index', 'pacientes.show', 'pacientes.edit']) ? 'active' : '' }}" 
+                                    style="margin: 0; padding: 12px 20px;">
+                                <div class="flex items-center">
+                                    <i class="fas fa-users mr-3 text-xl"></i>
+                                    <span class="font-semibold">Pacientes</span>
+                                </div>
+                                <i class="fas" :class="{'fa-chevron-up': open, 'fa-chevron-down': !open}"></i>
+                            </button>
+                            
+                            <div x-show="open" x-collapse>
+                                
+                                <a href="{{ route('pacientes.create') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('pacientes.create') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-plus mr-2 text-xs"></i> Novo Cadastro
+                                </a>
+                                
+                                <a href="{{ route('pacientes.index') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs(['pacientes.index', 'pacientes.show', 'pacientes.edit']) ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-list mr-2 text-xs"></i> Lista/Ficha
+                                </a>
+                                
+                            </div>
+                        </div>
+                    @else
+                        {{-- Link Simples de Pacientes (Fallback) --}}
+                         <a href="{{ route('pacientes.index') }}" class="nav-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">
+                            <i class="fas fa-users mr-3"></i>
+                            Pacientes
+                        </a>
                     @endif
                     
                     @if($uid && \App\Services\PermissionService::userHas($uid,'ver_dispensacoes'))

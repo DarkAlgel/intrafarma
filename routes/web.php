@@ -21,7 +21,6 @@ use App\Models\Usuario;
 
 
 Route::get('/', function () {
-    // ⭐️ CORREÇÃO: Variáveis inicializadas dentro do escopo.
     $dbStatus = '';
     $dbInfo = '';
 
@@ -46,7 +45,7 @@ Route::middleware(['auth'])->group(function () {
     // Rotas do Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // MÓDULO: PACIENTES
+    // MÓDULO: PACIENTES (pacientes.show é gerado aqui)
     Route::resource('pacientes', PacienteController::class);
     
     // MÓDULO: ESTOQUE (Visualização da Lista)
@@ -61,12 +60,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/estoque/entrada', [EntradaController::class, 'store'])->name('entradas.store');
     
     // MÓDULO: DISPENSAÇÃO
-    // Histórico de Dispensações (Listagem - View historico.blade.php)
-    Route::get('/dispensacao/historico', [DispensacaoController::class, 'index'])
+    // ⭐️ Histórico de Dispensações (index) ⭐️
+    Route::get('/dispensacoes/historico', [DispensacaoController::class, 'index'])
         ->middleware('perm:ver_dispensacoes')
         ->name('dispensacoes.index');
         
-    // Nova Dispensação (Formulário - View create.blade.php)
+    // Nova Dispensação (create)
     Route::get('/dispensacao/nova', [DispensacaoController::class, 'create'])
         ->middleware('perm:ver_dispensacoes')
         ->name('dispensacoes.create');
