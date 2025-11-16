@@ -17,6 +17,7 @@ use App\Http\Controllers\PermissionAdminController;
 use App\Http\Controllers\DispensacaoController; 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PacientePortalController;
+use App\Http\Controllers\MedicamentoController; // ⭐️ NOVO IMPORT MEDICAMENTO
 use App\Models\Usuario;
 
 
@@ -45,7 +46,7 @@ Route::middleware(['auth'])->group(function () {
     // Rotas do Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // MÓDULO: PACIENTES (pacientes.show é gerado aqui)
+    // MÓDULO: PACIENTES
     Route::resource('pacientes', PacienteController::class);
     
     // MÓDULO: ESTOQUE (Visualização da Lista)
@@ -59,9 +60,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/estoque/entrada/nova', [EntradaController::class, 'create'])->name('entradas.create');
     Route::post('/estoque/entrada', [EntradaController::class, 'store'])->name('entradas.store');
     
+    // MÓDULO: MEDICAMENTOS ⭐️ NOVO RECURSO
+    Route::resource('medicamentos', MedicamentoController::class);
+    
     // MÓDULO: DISPENSAÇÃO
-    // ⭐️ Histórico de Dispensações (index) ⭐️
-    Route::get('/dispensacoes/historico', [DispensacaoController::class, 'index'])
+    // Histórico de Dispensações (index)
+    Route::get('/dispensacao/historico', [DispensacaoController::class, 'index'])
         ->middleware('perm:ver_dispensacoes')
         ->name('dispensacoes.index');
         
@@ -172,11 +176,7 @@ Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'
 Route::post('/email/resend', [VerificationController::class, 'resend'])
     ->middleware(['auth', 'throttle:6,1'])
     ->name('verification.resend');
-Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
-    ->name('password.request');
-Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
-    ->name('password.email');
-Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
-    ->name('password.reset');
-Route::post('/password/reset', [ResetPasswordController::class, 'reset'])
-    ->name('password.update');
+Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');

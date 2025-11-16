@@ -240,10 +240,38 @@
                     @php $uid = Auth::id(); @endphp
                     
                     @if($uid && \App\Services\PermissionService::userHas($uid,'paciente_ver_medicamentos'))
-                    <a href="{{ route('paciente.medicamentos') }}" class="nav-link {{ request()->routeIs('paciente.medicamentos') ? 'active' : '' }}">
-                        <i class="fas fa-pills mr-3"></i>
-                        Medicamentos
-                    </a>
+                        {{-- ⭐️ SUBMENU MEDICAMENTOS ⭐️ --}}
+                        <div x-data="{ open: {{ request()->routeIs(['medicamentos.create', 'medicamentos.index']) ? 'true' : 'false' }} }" class="relative">
+                            
+                            <button @click="open = !open" 
+                                    class="flex items-center justify-between w-full nav-link {{ request()->routeIs(['medicamentos.create', 'medicamentos.index']) ? 'active' : '' }}" 
+                                    style="margin: 0; padding: 12px 20px;">
+                                <div class="flex items-center">
+                                    <i class="fas fa-pills mr-3 text-xl"></i>
+                                    <span class="font-semibold">Medicamentos</span>
+                                </div>
+                                <i class="fas" :class="{'fa-chevron-up': open, 'fa-chevron-down': !open}"></i>
+                            </button>
+                            
+                            <div x-show="open" x-collapse>
+                                <a href="{{ route('medicamentos.create') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('medicamentos.create') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-plus mr-2 text-xs"></i> Novo Cadastro
+                                </a>
+                                <a href="{{ route('medicamentos.index') }}" 
+                                   class="pl-12 py-2 text-sm text-gray-300 hover:bg-white/15 transition duration-150 ease-in-out block 
+                                          {{ request()->routeIs('medicamentos.index') ? 'bg-white/20 text-white font-bold' : '' }}">
+                                    <i class="fas fa-list mr-2 text-xs"></i> Lista
+                                </a>
+                            </div>
+                        </div>
+                    @else
+                        {{-- Fallback para link simples se não houver permissão de gerenciar --}}
+                        <a href="{{ route('medicamentos.index') }}" class="nav-link {{ request()->routeIs('medicamentos.*') ? 'active' : '' }}">
+                            <i class="fas fa-pills mr-3"></i>
+                            Medicamentos
+                        </a>
                     @endif
                     
                     @if($uid && \App\Services\PermissionService::userHas($uid,'ver_estoque'))
@@ -254,7 +282,7 @@
                     @endif
                     
                     @if($uid && \App\Services\PermissionService::userHas($uid,'gerenciar_usuarios'))
-                        {{-- ⭐️ SUBMENU PACIENTES ⭐️ --}}
+                        {{-- ⭐️ SUBMENU PACIENTES (gerenciar_usuarios) ⭐️ --}}
                         <div x-data="{ open: {{ request()->routeIs(['pacientes.create', 'pacientes.index', 'pacientes.show', 'pacientes.edit']) ? 'true' : 'false' }} }" class="relative">
                             
                             <button @click="open = !open" 
@@ -321,7 +349,6 @@
                             </div>
                         </div>
                     @endif
-                    {{-- FIM: SUBMENU DISPENSAÇÕES --}}
                     
                     <a href="{{ route('fornecedores.index') }}" class="nav-link {{ request()->routeIs('fornecedores.*') ? 'active' : '' }}">
                         <i class="fas fa-truck mr-3"></i>
