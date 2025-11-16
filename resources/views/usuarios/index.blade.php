@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const roleFormName = document.getElementById('roleFormName');
   const roleFormEmail = document.getElementById('roleFormEmail');
   function openRole(userId){ currentUserId = userId; const rd = getRowData(userId); if(roleFormName) roleFormName.value = rd.name; if(roleFormEmail) roleFormEmail.value = rd.email; renderRoleList(''); closeAllModals(); showModal(roleModal, roleOverlay, ()=>roleSearch && roleSearch.focus()); }
-  function closeRole(){ roleModal.classList.add('hidden'); roleOverlay.classList.add('hidden'); }
+  function closeRole(){ hideModal(roleModal, roleOverlay); }
   document.querySelectorAll('.btnOpenRoleModal').forEach(btn=>btn.addEventListener('click', ()=>openRole(btn.getAttribute('data-user'))));
   roleOverlay && roleOverlay.addEventListener('click', closeRole);
   const btnCancelRole = document.getElementById('btnCancelRole');
@@ -218,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const editEmail = document.getElementById('editEmail');
   function openEdit(userId){ currentUserId = userId; const rd = getRowData(userId); if(editName) editName.value = rd.name; if(editEmail) editEmail.value = rd.email; closeAllModals(); showModal(editModal, editOverlay, ()=>editName && editName.focus()); }
   function closeEdit(){ hideModal(editModal, editOverlay); }
+  document.querySelectorAll('.btnOpenEditModal').forEach(btn=>btn.addEventListener('click', ()=>openEdit(btn.getAttribute('data-user'))));
   
   editOverlay && editOverlay.addEventListener('click', closeEdit);
   const btnCancelEdit = document.getElementById('btnCancelEdit');
@@ -232,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const passFormEmail = document.getElementById('passwordFormEmail');
   function openPassword(userId){ currentUserId = userId; const rd = getRowData(userId); if(passFormName) passFormName.value = rd.name; if(passFormEmail) passFormEmail.value = rd.email; closeAllModals(); showModal(passModal, passOverlay, ()=>passNew && passNew.focus()); }
   function closePassword(){ hideModal(passModal, passOverlay); }
+  document.querySelectorAll('.btnOpenPasswordModal').forEach(btn=>btn.addEventListener('click', ()=>openPassword(btn.getAttribute('data-user'))));
   
   passOverlay && passOverlay.addEventListener('click', closePassword);
   const btnCancelPassword = document.getElementById('btnCancelPassword');
@@ -245,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const deleteForm = document.getElementById('deleteForm');
   function openDelete(userId){ currentUserId = userId; closeAllModals(); showModal(deleteModal, deleteOverlay); }
   function closeDelete(){ hideModal(deleteModal, deleteOverlay); }
+  document.querySelectorAll('.btnOpenDeleteModal').forEach(btn=>btn.addEventListener('click', ()=>openDelete(btn.getAttribute('data-user'))));
   
   deleteOverlay && deleteOverlay.addEventListener('click', closeDelete);
   btnCancelDelete && btnCancelDelete.addEventListener('click', closeDelete);
@@ -273,6 +276,25 @@ document.addEventListener('DOMContentLoaded', () => {
     ['#modalCreate','#modalRole','#modalEdit','#modalPassword','#modalDelete'].forEach(id=>{ const m = document.querySelector(id); if(m) m.classList.add('hidden'); });
     ['#overlayCreate','#overlayRole','#overlayEdit','#overlayPassword','#overlayDelete'].forEach(id=>{ const o = document.querySelector(id); if(o) o.classList.add('hidden'); });
   }
+
+  // Garantir que os botões com aria-controls disparam abertura
+  function bindAriaControlButtons(){
+    [
+      { selector: '.btnOpenRoleModal', open: openRole },
+      { selector: '.btnOpenEditModal', open: openEdit },
+      { selector: '.btnOpenPasswordModal', open: openPassword },
+      { selector: '.btnOpenDeleteModal', open: openDelete },
+    ].forEach(({ selector, open })=>{
+      document.querySelectorAll(selector).forEach(btn=>{
+        const uid = btn.getAttribute('data-user');
+        if(!btn.__bound){
+          btn.addEventListener('click', ()=>open(uid));
+          btn.__bound = true;
+        }
+      });
+    });
+  }
+  bindAriaControlButtons();
 
   function getModalBox(modal){
     if(!modal) return null;
