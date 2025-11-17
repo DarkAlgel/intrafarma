@@ -403,12 +403,6 @@
                         </a>
                     @endif
                     
-                    @if($uid && \App\Services\PermissionService::userHas($uid,'paciente_ver_historico'))
-                    <a href="{{ route('paciente.historico') }}" class="nav-link {{ request()->routeIs('paciente.historico') ? 'active' : '' }}">
-                        <i class="fas fa-notes-medical mr-3"></i>
-                        Meu Histórico
-                    </a>
-                    @endif
                 </nav>
             </div>
             
