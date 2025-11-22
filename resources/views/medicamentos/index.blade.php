@@ -33,9 +33,8 @@
 
     <main class="flex-1 p-6">
         
-        {{-- Botão 'Novo Medicamento' mantido no conteúdo principal --}}
+        {{-- Botão 'Novo Medicamento' --}}
         <div class="mb-6 flex justify-between items-center">
-            
             <div>
                 <h2 class="text-lg font-semibold text-gray-800">Lista de Medicamentos</h2>
                 <p class="text-sm text-gray-600 mt-1">Visão geral dos medicamentos cadastrados.</p>
@@ -67,18 +66,22 @@
                             <th class="table-header text-center">Ações</th>
                         </tr>
                     </thead>
+
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse ($medicamentos as $medicamento)
                         <tr class="table-row">
                             <td class="table-cell font-mono text-sm">{{ $medicamento->codigo }}</td>
+
                             <td class="table-cell font-medium text-gray-900">
                                 {{ $medicamento->nome }}<br>
                                 <span class="text-xs text-gray-500">
                                     {{ $medicamento->dosagem_valor }} {{ $medicamento->dosagem_unidade }} - {{ ucfirst($medicamento->apresentacao) }}
                                 </span>
                             </td>
+
                             <td class="table-cell">{{ $medicamento->laboratorio->nome ?? 'N/A' }}</td>
                             <td class="table-cell">{{ $medicamento->classeTerapeutica->nome ?? 'N/A' }}</td>
+
                             <td class="table-cell text-center">
                                 <span class="status-badge 
                                     @if($medicamento->tarja === 'tarja_preta') status-danger 
@@ -87,12 +90,31 @@
                                     {{ ucfirst(str_replace('_', ' ', $medicamento->tarja)) }}
                                 </span>
                             </td>
+
                             <td class="table-cell text-center">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <a href="{{ route('medicamentos.edit', $medicamento->id) }}" title="Editar" class="text-blue-600 hover:text-blue-800 transition duration-200">
+                                <div class="flex items-center justify-center space-x-3">
+
+                                    {{-- Botão Editar --}}
+                                    <a href="{{ route('medicamentos.edit', $medicamento->id) }}" 
+                                       title="Editar" 
+                                       class="text-blue-600 hover:text-blue-800 transition duration-200">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    {{-- Implementar botão de exclusão com SweetAlert se necessário --}}
+
+                                    {{-- Botão Excluir --}}
+                                    <form action="{{ route('medicamentos.destroy', $medicamento->id) }}" 
+                                          method="POST"
+                                          onsubmit="return confirm('Tem certeza que deseja excluir este medicamento?')">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit" 
+                                                class="text-red-600 hover:text-red-800 transition duration-200"
+                                                title="Excluir">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+
                                 </div>
                             </td>
                         </tr>
@@ -107,6 +129,7 @@
                         </tr>
                         @endforelse
                     </tbody>
+
                 </table>
             </div>
 
